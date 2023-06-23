@@ -10,10 +10,60 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+const kDuration = Duration(milliseconds: 300);
+
 enum LoginLayoutState {
   login,
   register,
-  forget,
+  forget;
+
+  String get labelText {
+    return '用户名';
+  }
+
+  String get hintText {
+    return '请输入用户名';
+  }
+
+  String get passwdLabelText {
+    switch (this) {
+      case login || register:
+        return '密码';
+      case forget:
+        return '新密码';
+    }
+  }
+
+  String get passwdHintText {
+    switch (this) {
+      case login || register:
+        return '请输入密码';
+      case forget:
+        return '请输入新密码';
+    }
+  }
+
+  String get mainActionLabel {
+    switch (this) {
+      case login:
+        return '登录';
+      case register:
+        return '注册';
+      case forget:
+        return '重置密码';
+    }
+  }
+
+  (String, String) get actionLabels {
+    switch (this) {
+      case login:
+        return ('注册', '忘记密码');
+      case register:
+        return ('登录', '忘记密码');
+      case forget:
+        return ('登录', '注册');
+    }
+  }
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -23,13 +73,19 @@ class _LoginPageState extends State<LoginPage> {
   final state = LoginLayoutState.login.obs;
   final UnAuthAPIProvider api = Get.find();
 
+  late final mainActionsMap = {
+    LoginLayoutState.login: login,
+    LoginLayoutState.register: register,
+    LoginLayoutState.forget: forget,
+  };
+
   void forget() {}
 
   void register() {
     api.register(nameController.text, passwordController.text).then((resp) {
       if (resp.statusCode == 200) {
         Get.snackbar('注册成功', '请登录');
-        toLogin();
+        state(LoginLayoutState.login);
       } else if (resp.statusCode == 409) {
         Get.snackbar('注册失败', '用户名已存在');
       } else {
@@ -44,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
         final token = resp.body['token'];
         Get.lazyPut(() => AuthedProvider(token));
         Get.snackbar('登录成功', '欢迎回来');
-        Get.offAllNamed('/');
+        Get.offAllNamed('/home');
       } else if (resp.statusCode == 401) {
         Get.snackbar('登录失败', '用户名或密码错误');
       } else {
@@ -53,174 +109,79 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  void toForget() {
-    state(LoginLayoutState.forget);
-  }
-
-  void toRegister() {
-    state(LoginLayoutState.register);
-  }
-
-  void toLogin() {
-    state(LoginLayoutState.login);
-  }
-
-  Widget _obxBuilder() {
+  Widget _contentBuilder() {
     final textTheme = Theme.of(context).textTheme;
-    final children = <Widget>[Text('平台登录', style: textTheme.titleLarge)];
+    final children = <Widget>[
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text('平台登录', style: textTheme.titleLarge),
+      )
+    ];
 
-    if (state() == LoginLayoutState.login) {
-      children.addAll([
-        TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: '用户名',
-            prefixIcon: Icon(Icons.person),
-            hintText: '请输入用户名',
-          ),
+    final state = this.state.value;
+    final otherStates = LoginLayoutState.values.where((s) => s != state);
+    children.addAll([
+      TextField(
+        controller: nameController,
+        decoration: InputDecoration(
+          labelText: state.labelText,
+          prefixIcon: const Icon(Icons.person),
+          hintText: state.hintText,
         ),
-        TextField(
-          obscureText: true,
-          controller: passwordController,
-          decoration: const InputDecoration(
-            labelText: '密码',
-            prefixIcon: Icon(Icons.lock),
-            hintText: '请输入密码',
-          ),
+      ),
+      TextField(
+        obscureText: true,
+        controller: passwordController,
+        decoration: InputDecoration(
+          labelText: state.passwdLabelText,
+          prefixIcon: const Icon(Icons.lock),
+          hintText: state.passwdHintText,
         ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            TextButton(
-              onPressed: toRegister,
-              child: const Text('注册'),
+      ),
+      const SizedBox(height: 4),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: kDuration,
+              child: TextButton(
+                key: Key(state.actionLabels.$1),
+                onPressed: () => this.state(otherStates.first),
+                child: Text(state.actionLabels.$1),
+              ),
             ),
-            TextButton(
-              onPressed: toForget,
-              child: const Text('忘记密码'),
+          ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: kDuration,
+              child: TextButton(
+                key: Key(state.actionLabels.$2),
+                onPressed: () => this.state(otherStates.last),
+                child: Text(state.actionLabels.$2),
+              ),
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ElevatedButton(
-          onPressed: login,
-          child: const SizedBox(
-            width: double.infinity,
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  '登录',
-                  style: TextStyle(fontSize: 18),
-                ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      ElevatedButton(
+        onPressed: mainActionsMap[state],
+        child: SizedBox(
+          width: double.infinity,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                state.mainActionLabel,
+                style: const TextStyle(fontSize: 18),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 16),
-      ]);
-    } else if (state() == LoginLayoutState.forget) {
-      children.addAll([
-        TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: '用户名',
-            prefixIcon: Icon(Icons.person),
-            hintText: '请输入用户名',
-          ),
-        ),
-        TextField(
-          obscureText: true,
-          controller: passwordController,
-          decoration: const InputDecoration(
-            labelText: '新密码',
-            prefixIcon: Icon(Icons.lock),
-            hintText: '请输入新密码',
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            TextButton(
-              onPressed: toRegister,
-              child: const Text('注册'),
-            ),
-            TextButton(
-              onPressed: toLogin,
-              child: const Text('登录'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ElevatedButton(
-          onPressed: forget,
-          child: const SizedBox(
-              width: double.infinity,
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    '更改密码',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              )),
-        ),
-        const SizedBox(height: 16),
-      ]);
-    } else {
-      children.addAll([
-        TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: '用户名',
-            prefixIcon: Icon(Icons.person),
-            hintText: '请输入用户名',
-          ),
-        ),
-        TextField(
-          obscureText: true,
-          controller: passwordController,
-          decoration: const InputDecoration(
-            labelText: '密码',
-            prefixIcon: Icon(Icons.lock),
-            hintText: '请输入密码',
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            TextButton(
-              onPressed: toLogin,
-              child: const Text('登录'),
-            ),
-            TextButton(
-              onPressed: toForget,
-              child: const Text('忘记密码'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ElevatedButton(
-          onPressed: register,
-          child: const SizedBox(
-              width: double.infinity,
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    '注册',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              )),
-        ),
-        const SizedBox(height: 16),
-      ]);
-    }
+      ),
+      const SizedBox(height: 16),
+    ]);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -240,15 +201,15 @@ class _LoginPageState extends State<LoginPage> {
         ColoredBox(color: theme.colorScheme.background.withOpacity(0.9)),
         BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: FractionallySizedBox(
-            widthFactor: 0.3,
-            child: Center(
+          child: Align(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 360),
               child: Material(
                 elevation: 5,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Obx(_obxBuilder),
+                  child: Obx(_contentBuilder),
                 ),
               ),
             ),

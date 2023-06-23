@@ -56,7 +56,7 @@ class _MainPageState extends State<MainPage> {
       res.add(KeyedSubtree(key: key, child: content));
     }
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: res,
     );
   }
@@ -69,9 +69,8 @@ class _MainPageState extends State<MainPage> {
           padding: const EdgeInsets.only(left: 30, right: 30),
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 64),
               Text('总览', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 20),
               Expanded(child: Obx(getTabs)),
             ],
           ),

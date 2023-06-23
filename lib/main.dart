@@ -25,7 +25,7 @@ class App extends StatelessWidget {
       title: '你所热爱的',
       theme: ThemeData.light(useMaterial3: useMaterial3),
       darkTheme: ThemeData.dark(useMaterial3: useMaterial3),
-      initialRoute: tokenManager.isAuthed ? '/home' : '/home',
+      initialRoute: tokenManager.isAuthed ? '/home' : '/login',
       routes: {
         '/home': (context) => const HomePage(),
         '/login': (context) => const LoginPage(),
