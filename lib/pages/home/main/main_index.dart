@@ -1,7 +1,7 @@
-import 'package:analyze_sys_web/pages/home/main/data_page.dart';
-import 'package:analyze_sys_web/pages/home/main/model_page.dart';
-import 'package:analyze_sys_web/pages/home/main/model_usage_page.dart';
-import 'package:analyze_sys_web/pages/home/main/trian_page.dart';
+import 'package:software_cup_web/pages/home/main/data_page.dart';
+import 'package:software_cup_web/pages/home/main/model_page.dart';
+import 'package:software_cup_web/pages/home/main/model_usage_page.dart';
+import 'package:software_cup_web/pages/home/main/trian_page.dart';
 import 'package:flutter/widgets.dart';
 
 enum MainPageIndex {

@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:analyze_sys_web/http_api/http_api.dart';
+import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -1,7 +1,7 @@
-import 'package:analyze_sys_web/pages/home/desc_page.dart';
-import 'package:analyze_sys_web/pages/home/doc_page.dart';
-import 'package:analyze_sys_web/pages/home/main_page.dart';
-import 'package:analyze_sys_web/token/token.dart';
+import 'package:software_cup_web/pages/home/desc_page.dart';
+import 'package:software_cup_web/pages/home/doc_page.dart';
+import 'package:software_cup_web/pages/home/main_page.dart';
+import 'package:software_cup_web/token/token.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -1,4 +1,4 @@
-# analyze_sys_web
+# software_cup_web
 
 A new Flutter project.
 

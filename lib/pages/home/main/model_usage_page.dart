@@ -1,4 +1,4 @@
-import 'package:analyze_sys_web/pages/home/main/main_index.dart';
+import 'package:software_cup_web/pages/home/main/main_index.dart';
 import 'package:flutter/material.dart';
 
 class ModelUsagePage extends StatelessWidget {

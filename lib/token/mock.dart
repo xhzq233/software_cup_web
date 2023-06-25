@@ -1,4 +1,4 @@
-import 'package:analyze_sys_web/token/interface.dart';
+import 'package:software_cup_web/token/interface.dart';
 
 class CookieManager with TokenManagerMixin {
   @override
