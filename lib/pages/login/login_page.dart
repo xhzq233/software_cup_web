@@ -84,29 +84,13 @@ class _LoginPageState extends State<LoginPage> {
   void register() {
     api.register(nameController.text, passwordController.text).then((resp) {
       if (resp.statusCode == 200) {
-        Get.snackbar('注册成功', '请登录');
         state(LoginLayoutState.login);
-      } else if (resp.statusCode == 409) {
-        Get.snackbar('注册失败', '用户名已存在');
-      } else {
-        Get.snackbar('注册失败', '未知错误');
       }
     });
   }
 
   void login() {
-    api.login(nameController.text, passwordController.text).then((resp) {
-      if (resp.statusCode == 200) {
-        final token = resp.body['token'];
-        Get.lazyPut(() => AuthedProvider(token));
-        Get.snackbar('登录成功', '欢迎回来');
-        Get.offAllNamed('/home');
-      } else if (resp.statusCode == 401) {
-        Get.snackbar('登录失败', '用户名或密码错误');
-      } else {
-        Get.snackbar('登录失败', '未知错误');
-      }
-    });
+    api.login(nameController.text, passwordController.text);
   }
 
   Widget _contentBuilder() {

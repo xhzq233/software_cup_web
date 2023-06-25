@@ -14,7 +14,12 @@ class CookieManager with TokenManagerMixin {
   }
 
   @override
-  void setToken(String token) {
-    document.cookie = 'token=$token';
+  void setToken(String? token) {
+    if (token == null) {
+      // delete cookie
+      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+    } else {
+      document.cookie = 'token=$token';
+    }
   }
 }

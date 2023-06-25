@@ -11,8 +11,13 @@ class CookieManager with TokenManagerMixin {
   }
 
   @override
-  void setToken(String token) {
+  void setToken(String? token) {
+    final file = File('token');
+    if (token == null) {
+      file.delete();
+      return;
+    }
     // write token to file
-    File('token').writeAsString(token);
+    file.writeAsString(token);
   }
 }

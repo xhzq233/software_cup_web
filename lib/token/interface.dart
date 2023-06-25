@@ -4,5 +4,5 @@ mixin TokenManagerMixin {
 
   bool get isAuthed => token != null;
 
-  void setToken(String token);
+  void setToken(String? token);
 }

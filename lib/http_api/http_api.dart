@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/request/request.dart';
+import 'package:software_cup_web/token/token.dart';
 
 const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
 
@@ -38,8 +39,21 @@ class UnAuthAPIProvider extends API {
 // 200：登录成功
 // 401：用户名或密码错误
 // 2.	token：	//登录成功时返回
-  Future<Response> login(String username, String passwd) =>
-      post('/users/login', {'username': username, 'passwd': passwd});
+  Future<void> login(String username, String passwd) =>
+      post('/users/login', {'username': username, 'passwd': passwd}).then((resp) {
+        final message = resp.body['message'];
+        if (resp.statusCode == 200) {
+          final token = resp.body['token'];
+          Get.lazyPut(() => AuthedAPIProvider(token));
+          tokenManager.setToken(token);
+          Get.snackbar('登录成功', message);
+          Get.offAllNamed('/home');
+        } else if (resp.statusCode == 401) {
+          Get.snackbar('登录失败', message);
+        } else {
+          Get.snackbar('登录失败', message);
+        }
+      });
 
 // 注册
 // URL：/users/register
@@ -54,19 +68,37 @@ class UnAuthAPIProvider extends API {
 // 409：用户名已存在
 // 备注：400为暂定，可能需要细分
   Future<Response> register(String username, String password) =>
-      post('/users/register', {'username': username, 'passwd': password});
+      post('/users/register', {'username': username, 'passwd': password}).then((resp) {
+        final message = resp.body['message'];
+        if (resp.statusCode == 200) {
+          Get.snackbar('注册成功', message);
+        } else if (resp.statusCode == 409) {
+          Get.snackbar('注册失败', message);
+        } else {
+          Get.snackbar('注册失败', message);
+        }
+        return resp;
+      });
 }
 
-class AuthedProvider extends API {
+class AuthedAPIProvider extends API {
   final String token;
 
-  AuthedProvider(this.token);
+  AuthedAPIProvider(this.token);
 
   @override
   void onInit() {
     httpClient.addRequestModifier<Object?>((request) {
       request.headers['token'] = token;
       return request;
+    });
+
+    httpClient.addResponseModifier((request, response) {
+      if (response.statusCode == 401) {
+        Get.snackbar('登录过期', '请重新登录');
+        Get.offAllNamed('/login');
+      }
+      return response;
     });
     super.onInit();
   }
@@ -80,7 +112,15 @@ class AuthedProvider extends API {
 // 1.	status/message：
 // 200：登出成功
 // 备注：用于消除token。但不检查username是否安全？
-  Future<Response> logout() => post('/users/logout', {});
+  Future<void> logout() => post('/users/logout', {}).then((resp) {
+        if (resp.statusCode == 200) {
+          Get.snackbar('登出成功', resp.body['message']);
+          tokenManager.setToken(null);
+          Get.offAllNamed('/login');
+        } else {
+          Get.snackbar('登出失败', resp.body['message']);
+        }
+      });
 
 // 修改密码
 // URL：/users/chPasswd

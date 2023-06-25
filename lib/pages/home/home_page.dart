@@ -1,3 +1,4 @@
+import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/pages/home/desc_page.dart';
 import 'package:software_cup_web/pages/home/doc_page.dart';
 import 'package:software_cup_web/pages/home/main_page.dart';
@@ -50,8 +51,7 @@ class _HomePageState extends State<HomePage> {
       tabs: HomePageIndex.values.map((e) => Tab(text: e.name)).toList(),
       onTap: (index) => this.index(HomePageIndex.values[index]),
     );
-    final accountView = ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 40 * 3),
+    final username = Expanded(
       child: Text(
         tokenManager.token ?? '未登录',
         maxLines: 1,
@@ -61,23 +61,27 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
     final avatarView = IconButton(
       icon: const Icon(Icons.account_circle),
-      onPressed: () {},
+      onPressed: () {
+        if (tokenManager.isAuthed) {
+          Get.find<AuthedAPIProvider>().logout();
+        }
+      },
     );
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(child: tabBar),
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 120),
+          constraints: const BoxConstraints(maxWidth: 168),
           child: Column(
             children: [
               const Spacer(),
               Row(
                 children: [
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 6),
                   avatarView,
-                  accountView,
-                  const SizedBox(width: 20),
+                  username,
+                  const SizedBox(width: 12),
                 ],
               ),
               const Spacer(),
