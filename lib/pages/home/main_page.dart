@@ -24,10 +24,6 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  void toIndex(int index) {
-    this.index(MainPageIndex.values[index]);
-  }
-
   Widget getTabs() {
     final res = <Widget>[];
     final tabBatTextTheme = Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600);
@@ -44,9 +40,8 @@ class _MainPageState extends State<MainPage> {
         ),
         child: Text(tab.name, style: tabBatTextTheme),
       );
-
       content = GestureDetector(
-        onTap: () => toIndex(tab.index),
+        onTap: () => index(tab),
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: content,

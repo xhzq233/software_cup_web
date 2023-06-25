@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/request/request.dart';
 
-const baseUrl = kReleaseMode ? 'http://150.158.91.154:5000' : 'http://150.158.91.154:5000';
+const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
 
 abstract class API extends GetConnect {
   @override
