@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/request/request.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:software_cup_web/http_api/model.dart';
 import 'package:software_cup_web/token/token.dart';
 
 const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
@@ -15,7 +18,11 @@ abstract class API extends GetConnect {
     // log
     httpClient.addRequestModifier<Object?>((request) {
       log('${request.method} ${request.url} headers: ${request.headers}');
-      request.bodyBytes.toBytes().then((value) => log('body: ${utf8.decode(value.toList())}'));
+      request.bodyBytes.toBytes().then((value) {
+        final body = utf8.decode(value.toList());
+        if (body.trim().isEmpty) return;
+        log('body: $body');
+      });
       return request;
     });
     httpClient.addResponseModifier((request, response) {
@@ -148,23 +155,15 @@ class AuthedAPIProvider extends API {
 // 响应内容：
 // 1.	status/message：
 // 200：获取成功
-// 2.	model_num:
-// 3.	model_list:
-// [
-// {
-// 	name:		// 模型名称，字符串
-// 	id:			// 模型id，整型
-// 	type:		 // 使用的模型类型名称，字符串
-// 	status:		//模型状态：训练中/已完成
-// 	createTime:  // 创建时间，字符串
-// 	macro_f1:   // f1得分
-// feature_num：// 输入特征
-// k_class：	 //k分类（输出）
-// },
-// …
-// ]
 
-  Future<Response> getModelList() => get('/model/getList');
+  Future<ModelListResponse?> getModelList() => get('/model/getList').then((value) {
+        if (value.statusCode == 200) {
+          return ModelListResponse.fromJson(value.body);
+        } else {
+          Get.snackbar('获取模型列表失败', value.body['message']);
+          return null;
+        }
+      });
 
 // 删除模型
 // URL：/model/del
@@ -180,7 +179,15 @@ class AuthedAPIProvider extends API {
 // 404：模型不存在
 // 备注：因为未设置取消训练功能，暂定训练中的模型不可被删除(前端禁止点击)
 
-  Future<Response> deleteModel(int modelId) => post('/model/del', {'model_id': modelId});
+  Future<void> deleteModel(int modelId) => post('/model/del', {'model_id': modelId}).then((value) {
+        if (value.statusCode == 200) {
+          Get.snackbar('删除成功', value.body['message']);
+        } else if (value.statusCode == 403) {
+          Get.snackbar('删除失败', value.body['message']);
+        } else {
+          Get.snackbar('删除失败', value.body['message']);
+        }
+      });
 
 // 修改模型信息
 // URL：/model/chInfo
@@ -201,8 +208,19 @@ class AuthedAPIProvider extends API {
 // 1.	参数model_name和remark是可选的，至少一个
 // 2.	403留给公共模型，禁止修改名称和备注（暂定）
 
-  Future<Response> changeModelInfo(int modelId, String modelName, String remark) =>
-      post('/model/chInfo', {'model_id': modelId, 'model_name': modelName, 'remark': remark});
+  Future<void> changeModelInfo(int modelId, String modelName, String remark) =>
+      post('/model/chInfo', {'model_id': modelId, 'model_name': modelName, 'remark': remark}).then((value) {
+        final message = value.body['message'];
+        if (value.statusCode == 200) {
+          Get.snackbar('修改成功', message);
+        } else if (value.statusCode == 400) {
+          Get.snackbar('修改失败', message);
+        } else if (value.statusCode == 403) {
+          Get.snackbar('修改失败', message);
+        } else {
+          Get.snackbar('修改失败', message);
+        }
+      });
 
 // 下载模型
 // URL：/download/model/model_id=?
@@ -219,8 +237,34 @@ class AuthedAPIProvider extends API {
 // 1.	下载类api如果成功就直接返回文件，下同
 // 2.	默认流式下载（也可以选择以附件的形式，不知道有什么区别）
 // 3.	是否需要限制用户下载数量（返回403）
+  void _download(String filename, Stream<List<int>> bytes) async {
+    final dir = await getDownloadsDirectory();
+    if (dir == null) {
+      Get.snackbar('下载失败', '无法获取下载目录');
+      return;
+    }
+    final file = File('${dir.path}/$filename');
+    if (await file.exists()) {
+      await file.delete();
+    }
+    bytes.listen((event) {
+      file.writeAsBytes(event, mode: FileMode.append, flush: true);
+    });
+  }
 
-  Future<Response> downloadModel(int modelId) => get('/download/model/model_id=$modelId');
+  Future<void> downloadModel(int modelId) => get('/download/model/model_id=$modelId').then((value) async {
+        if (value.statusCode == 200) {
+          final filename = 'model-$modelId.zip';
+          final bytes = value.bodyBytes;
+          if (bytes == null) {
+            Get.snackbar('下载失败', '无法获取下载内容');
+            return;
+          }
+          _download(filename, bytes);
+        } else {
+          Get.snackbar('下载失败', value.body['message']);
+        }
+      });
 
 // 下载模型报告
 // URL：/download/report/model_id=?
@@ -234,7 +278,19 @@ class AuthedAPIProvider extends API {
 // 200：下载成功
 // 404：模型不存在
 
-  Future<Response> downloadReport(int modelId) => get('/download/report/model_id=$modelId');
+  Future<void> downloadReport(int modelId) => get('/download/report/model_id=$modelId').then((resp) {
+        if (resp.statusCode == 200) {
+          final filename = 'report-$modelId.txt';
+          final bytes = resp.bodyBytes;
+          if (bytes == null) {
+            Get.snackbar('下载失败', '无法获取下载内容');
+            return;
+          }
+          _download(filename, bytes);
+        } else {
+          Get.snackbar('下载失败', resp.body['message']);
+        }
+      });
 
 // 获取模型详情
 // URL：/model/getDetail
@@ -247,37 +303,15 @@ class AuthedAPIProvider extends API {
 // 1.	status/message：
 // 200：成功
 // 404：模型不存在
-// 	2.	precision:
-// 	3.  lastPred:		//上一次模型使用的结果
-// 	{
-// 		precision:
-// 		recall:
-// 		f1:
-// }
-// 4.  params: // 训练时设定的参数
-// {
-// epoch:
-// …
-// }
-// 5.  report:		//模型报告
-// {
-// class_res_num:	//类型列表长度
-// class_res:		//类型列表
-// [
-// 		{			//每类的结果
-// 			precision:
-// 			recall:
-// 			f1:
-// 			features: // 每个类别对应的feature,以字符串列表的形式给出
-// [
-// ,
-// ]
-// },
-// ]
-// }
-// 6. remark:		//用户对模型的备注
 
-  Future<Response> getModelDetail(int modelId) => get('/model/getDetail?model_id=$modelId');
+  Future<ModelDetail?> getModelDetail(int modelId) => get('/model/getDetail?model_id=$modelId').then((value) {
+        if (value.statusCode == 200) {
+          return ModelDetail.fromJson(value.body['model_detail']);
+        } else {
+          Get.snackbar('获取失败', value.body['message']);
+          return null;
+        }
+      });
 
 // 获取数据集列表
 // URL：/dataset/getList
@@ -303,7 +337,14 @@ class AuthedAPIProvider extends API {
 // …
 // ]
 
-  Future<Response> getDatasetList() => get('/dataset/getList');
+  Future<DataSetListResponse?> getDatasetList() => get('/dataset/getList').then((value) {
+        if (value.statusCode == 200) {
+          return DataSetListResponse.fromJson(value.body);
+        } else {
+          Get.snackbar('获取失败', value.body['message']);
+          return null;
+        }
+      });
 
 // 数据集拆分
 // URL： /dataset/split
@@ -336,8 +377,16 @@ class AuthedAPIProvider extends API {
 // ]
 // 备注：关于拆分比例，是否需要拆分成两个参数传递
 
-  Future<Response> splitDataset(int datasetId, String ratio, String name1, String name2) =>
-      post('/dataset/split', {'dataset_id': datasetId, 'ratio': ratio, 'name1': name1, 'name2': name2});
+  Future<(DataSet, DataSet)?> splitDataset(int datasetId, String ratio, String name1, String name2) =>
+      post('/dataset/split', {'dataset_id': datasetId, 'ratio': ratio, 'name1': name1, 'name2': name2}).then((value) {
+        if (value.statusCode == 200) {
+          final list = value.body['new_dataset'];
+          return (DataSet.fromJson(list[0]), DataSet.fromJson(list[1]));
+        } else {
+          Get.snackbar('拆分失败', value.body['message']);
+          return null;
+        }
+      });
 
 // 数据集删除
 // URL： /dataset/del
@@ -351,7 +400,13 @@ class AuthedAPIProvider extends API {
 // 200：成功删除
 // 404：数据集不存在
 
-  Future<Response> deleteDataset(int datasetId) => post('/dataset/del', {'dataset_id': datasetId});
+  Future<void> deleteDataset(int datasetId) => post('/dataset/del', {'dataset_id': datasetId}).then((value) {
+        if (value.statusCode == 200) {
+          Get.snackbar('删除成功', '数据集已删除');
+        } else {
+          Get.snackbar('删除失败', value.body['message']);
+        }
+      });
 
 // 数据集下载
 // URL： /download/dataset/dataset_id=?
@@ -365,7 +420,19 @@ class AuthedAPIProvider extends API {
 // 200：下载成功
 // 404：数据集不存在
 
-  Future<Response> downloadDataset(int datasetId) => get('/download/dataset/dataset_id=$datasetId');
+  Future<void> downloadDataset(int datasetId) => get('/download/dataset/dataset_id=$datasetId').then((value) {
+        if (value.statusCode == 200) {
+          final filename = 'dataset-$datasetId.csv';
+          final bytes = value.bodyBytes;
+          if (bytes == null) {
+            Get.snackbar('下载失败', '无法获取下载内容');
+            return;
+          }
+          _download(filename, bytes);
+        } else {
+          Get.snackbar('下载失败', value.body['message']);
+        }
+      });
 
 // 数据集上传
 // URL：/upload/dataset/
@@ -395,8 +462,14 @@ class AuthedAPIProvider extends API {
 // ]
 // 备注：具体如何判断文件过大，以什么标准待定
 
-  Future<Response> uploadDataset(String name, List<int> file, String filename) =>
-      post('/upload/dataset', FormData({'name': name, 'file': MultipartFile(file, filename: filename)}));
+  Future<void> uploadDataset(String name, List<int> file, String filename) =>
+      post('/upload/dataset', FormData({'name': name, 'file': MultipartFile(file, filename: filename)})).then((value) {
+        if (value.statusCode == 200) {
+          Get.snackbar('上传成功', value.body['message']);
+        } else {
+          Get.snackbar('上传失败', value.body['message']);
+        }
+      });
 
 // 模型训练
 // URL：/train
@@ -517,5 +590,17 @@ class AuthedAPIProvider extends API {
 // 404：无预测结果可供下载
 // 备注：默认返回上一次的结果
 
-  Future<Response> downloadPredict() => get('/download/predict');
+  Future<void> downloadPredict() => get('/download/predict').then((value) {
+        if (value.statusCode == 200) {
+          const filename = 'predict.csv';
+          final bytes = value.bodyBytes;
+          if (bytes == null) {
+            Get.snackbar('下载失败', '无法获取下载内容');
+            return;
+          }
+          _download(filename, bytes);
+        } else {
+          Get.snackbar('下载失败', value.body['message']);
+        }
+      });
 }
