@@ -14,7 +14,7 @@ class ModelPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(MainPageIndex.model.name, style: textTheme.headlineLarge),
+            Text(MainPageIndex.model.pageTitle, style: textTheme.headlineLarge),
             const SizedBox(width: 8),
             Text(
               '管理模型，查看模型属性，性能',

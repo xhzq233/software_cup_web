@@ -14,7 +14,7 @@ class ModelUsagePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(MainPageIndex.modelUsage.name, style: textTheme.headlineLarge),
+            Text(MainPageIndex.modelUsage.pageTitle, style: textTheme.headlineLarge),
             const SizedBox(width: 8),
             Text(
               '选择模型后，上传数据集进行测试',

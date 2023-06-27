@@ -14,7 +14,7 @@ class DataPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(MainPageIndex.data.name, style: textTheme.headlineLarge),
+            Text(MainPageIndex.data.pageTitle, style: textTheme.headlineLarge),
             const SizedBox(width: 8),
             Text(
               '上传数据集并划分训练集测试集',

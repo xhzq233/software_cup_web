@@ -5,25 +5,13 @@ import 'package:software_cup_web/pages/home/main/trian_page.dart';
 import 'package:flutter/widgets.dart';
 
 enum MainPageIndex {
-  data(DataPage(key: Key('data'))),
-  train(TrainPage(key: Key('train'))),
-  model(ModelPage(key: Key('model'))),
-  modelUsage(ModelUsagePage(key: Key('modelUsage')));
+  data(DataPage(key: Key('data')), '数据管理'),
+  train(TrainPage(key: Key('train')), '训练管理'),
+  model(ModelPage(key: Key('model')), '模型管理'),
+  modelUsage(ModelUsagePage(key: Key('modelUsage')), '模型使用');
 
-  const MainPageIndex(this.page);
+  const MainPageIndex(this.page, this.pageTitle);
 
   final Widget page;
-
-  String get name {
-    switch (this) {
-      case MainPageIndex.data:
-        return '数据管理';
-      case MainPageIndex.model:
-        return '模型管理';
-      case MainPageIndex.train:
-        return '训练管理';
-      case MainPageIndex.modelUsage:
-        return '模型使用';
-    }
-  }
+  final String pageTitle;
 }

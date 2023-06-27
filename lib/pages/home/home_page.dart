@@ -38,7 +38,7 @@ enum HomePageIndex {
       case HomePageIndex.main:
         return const MainPage();
       case HomePageIndex.doc:
-        return  DocPage();
+        return const DocPage();
     }
   }
 }
