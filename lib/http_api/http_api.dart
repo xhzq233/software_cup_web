@@ -9,6 +9,8 @@ import 'package:software_cup_web/http_api/model.dart';
 import 'package:software_cup_web/token/token.dart';
 
 const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
+final unAuthAPI = Get.find<UnAuthAPIProvider>();
+final authedAPI = Get.find<AuthedAPIProvider>();
 
 abstract class API extends GetConnect {
   @override

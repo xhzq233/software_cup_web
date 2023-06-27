@@ -71,7 +71,6 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
 
   final state = LoginLayoutState.login.obs;
-  final UnAuthAPIProvider api = Get.find();
 
   late final mainActionsMap = {
     LoginLayoutState.login: login,
@@ -82,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
   void forget() {}
 
   void register() {
-    api.register(nameController.text, passwordController.text).then((resp) {
+    unAuthAPI.register(nameController.text, passwordController.text).then((resp) {
       if (resp.statusCode == 200) {
         state(LoginLayoutState.login);
       }
@@ -90,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void login() {
-    api.login(nameController.text, passwordController.text);
+    unAuthAPI.login(nameController.text, passwordController.text);
   }
 
   Widget _contentBuilder() {
