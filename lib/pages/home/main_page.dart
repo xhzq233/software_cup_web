@@ -1,3 +1,4 @@
+import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/pages/home/main/main_index.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,7 +13,15 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final index = MainPageIndex.data.obs;
+  final Rx<MainPageIndex> index = MainPageIndex.data.obs;
+
+  @override
+  void initState() {
+    index.listen(storageProvider.switchedMainPageTab);
+    // init
+    storageProvider.switchedMainPageTab(index.value);
+    super.initState();
+  }
 
   Widget _buildBody() {
     return Padding(
@@ -30,7 +39,6 @@ class _MainPageState extends State<MainPage> {
     final curIndex = index.value;
     for (final tab in MainPageIndex.values) {
       final isSelected = tab == curIndex;
-      final key = ValueKey(tab.index);
       Widget content = AnimatedContainer(
         duration: kAnimationDuration,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -38,8 +46,9 @@ class _MainPageState extends State<MainPage> {
           color: isSelected ? Colors.blue : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(tab.name, style: tabBatTextTheme),
+        child: Text(tab.pageTitle, style: tabBatTextTheme),
       );
+
       content = GestureDetector(
         onTap: () => index(tab),
         child: MouseRegion(
@@ -48,7 +57,7 @@ class _MainPageState extends State<MainPage> {
         ),
       );
 
-      res.add(KeyedSubtree(key: key, child: content));
+      res.add(KeyedSubtree(key: ValueKey(tab), child: content));
     }
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,

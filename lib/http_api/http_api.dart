@@ -464,7 +464,7 @@ class AuthedAPIProvider extends API {
 // ]
 // 备注：具体如何判断文件过大，以什么标准待定
 
-  Future<void> uploadDataset(String name, List<int> file, String filename) =>
+  Future<void> uploadDataset(String name, dynamic file, String filename) =>
       post('/upload/dataset', FormData({'name': name, 'file': MultipartFile(file, filename: filename)})).then((value) {
         if (value.statusCode == 200) {
           Get.snackbar('上传成功', value.body['message']);
