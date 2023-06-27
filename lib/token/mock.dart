@@ -6,7 +6,7 @@ class CookieManager with TokenManagerMixin {
   String? get token => throw UnimplementedError();
 
   @override
-  void setToken(String? token) {
+  String? initToken() {
     throw UnimplementedError();
   }
 }

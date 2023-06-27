@@ -7,10 +7,7 @@ import 'package:get/get.dart';
 
 void main() {
   Get.lazyPut(() => UnAuthAPIProvider());
-  // get [token]
-  if (tokenManager.isAuthed) {
-    Get.lazyPut(() => AuthedAPIProvider());
-  }
+  Get.lazyPut(() => AuthedAPIProvider());
   runApp(const App());
 }
 
