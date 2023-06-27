@@ -9,7 +9,7 @@ void main() {
   Get.lazyPut(() => UnAuthAPIProvider());
   // get [token]
   if (tokenManager.isAuthed) {
-    Get.lazyPut(() => AuthedAPIProvider(tokenManager.token!));
+    Get.lazyPut(() => AuthedAPIProvider());
   }
   runApp(const App());
 }

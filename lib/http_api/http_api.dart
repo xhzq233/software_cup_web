@@ -53,7 +53,7 @@ class UnAuthAPIProvider extends API {
         final message = resp.body['message'];
         if (resp.statusCode == 200) {
           final token = resp.body['token'];
-          Get.lazyPut(() => AuthedAPIProvider(token));
+          Get.lazyPut(() => AuthedAPIProvider());
           tokenManager.setToken(token);
           Get.snackbar('登录成功', message);
           Get.offAllNamed('/home');
@@ -91,20 +91,21 @@ class UnAuthAPIProvider extends API {
 }
 
 class AuthedAPIProvider extends API {
-  final String token;
-
-  AuthedAPIProvider(this.token);
+  AuthedAPIProvider();
 
   @override
   void onInit() {
     httpClient.addRequestModifier<Object?>((request) {
-      request.headers['token'] = token;
+      if (tokenManager.isAuthed) {
+        request.headers['token'] = tokenManager.token!;
+      }
       return request;
     });
 
     httpClient.addResponseModifier((request, response) {
       if (response.statusCode == 401) {
         Get.snackbar('登录过期', '请重新登录');
+        tokenManager.setToken(null);
         Get.offAllNamed('/login');
       }
       return response;

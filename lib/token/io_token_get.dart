@@ -18,6 +18,6 @@ class CookieManager with TokenManagerMixin {
       return;
     }
     // write token to file
-    file.writeAsString(token);
+    file.writeAsStringSync(token, flush: true);
   }
 }

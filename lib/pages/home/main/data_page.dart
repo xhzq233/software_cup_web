@@ -9,12 +9,36 @@ class DataPage extends StatelessWidget {
   const DataPage({super.key});
 
   Widget _buildItem(DataSet dataSet) {
-    return ListTile(
-      key: ValueKey(dataSet.id),
-      title: Text(dataSet.name),
-      subtitle: Text(dataSet.createTime),
-      trailing: Text(dataSet.labelState),
+    return InkWell(
       onTap: () {},
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  dataSet.name,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '数据集大小：${dataSet.lineNum}条',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '上传时间：${dataSet.createTime}',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          Flexible(child: Text(dataSet.toJson().toString())),
+        ],
+      ),
     );
   }
 
@@ -25,11 +49,17 @@ class DataPage extends StatelessWidget {
         child: CircularProgressIndicator(),
       );
     }
-    return ListView.builder(
+    return ListView.separated(
       itemBuilder: (ctx, index) {
         return _buildItem(list.datasetList[index]);
       },
       itemCount: list.datasetList.length,
+      separatorBuilder: (BuildContext context, int index) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.0),
+          child: ColoredBox(color: Colors.grey, child: SizedBox(height: 1, width: double.infinity)),
+        );
+      },
     );
   }
 
@@ -84,4 +114,3 @@ class DataPage extends StatelessWidget {
     );
   }
 }
-
