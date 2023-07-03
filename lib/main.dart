@@ -1,13 +1,11 @@
-import 'package:software_cup_web/http_api/http_api.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:get/get.dart';
 import 'package:software_cup_web/pages/home/home_page.dart';
 import 'package:software_cup_web/pages/login/login_page.dart';
 import 'package:software_cup_web/token/token.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 void main() {
-  Get.lazyPut(() => UnAuthAPIProvider());
-  Get.lazyPut(() => AuthedAPIProvider());
   runApp(const App());
 }
 
@@ -17,7 +15,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const useMaterial3 = true;
-    return GetMaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: '你所热爱的',
       theme: ThemeData.light(useMaterial3: useMaterial3),
@@ -27,6 +25,9 @@ class App extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/login': (context) => const LoginPage(),
       },
+      navigatorKey: Get.key,
+      navigatorObservers: [FlutterSmartDialog.observer],
+      builder: FlutterSmartDialog.init(),
     );
   }
 }

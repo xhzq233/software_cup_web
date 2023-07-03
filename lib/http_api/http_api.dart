@@ -2,17 +2,17 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart' hide ExtensionSnackbar;
 import 'package:get/get_connect/http/src/request/request.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:software_cup_web/http_api/model.dart';
 import 'package:software_cup_web/token/token.dart';
-import 'package:flutter/material.dart';
 
-const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
-final unAuthAPI = Get.find<UnAuthAPIProvider>();
-final authedAPI = Get.find<AuthedAPIProvider>();
+const baseUrl =
+    kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
+final unAuthAPI = Get.put(UnAuthAPIProvider());
+final authedAPI = Get.put(AuthedAPIProvider());
 
 abstract class API extends GetConnect {
   @override
@@ -51,17 +51,18 @@ class UnAuthAPIProvider extends API {
 // 401：用户名或密码错误
 // 2.	token：	//登录成功时返回
   Future<void> login(String username, String passwd) =>
-      post('/users/login', {'username': username, 'passwd': passwd}).then((resp) {
+      post('/users/login', {'username': username, 'passwd': passwd})
+          .then((resp) {
         final message = resp.body['message'];
         if (resp.statusCode == 200) {
           final token = resp.body['token'];
           tokenManager.setToken(token);
-          Get.snackbar('登录成功', message);
+          SmartDialog.showToast(message);
           Get.offAllNamed('/home');
         } else if (resp.statusCode == 401) {
-          Get.snackbar('登录失败', message);
+          SmartDialog.showToast(message);
         } else {
-          Get.snackbar('登录失败', message);
+          SmartDialog.showToast(message);
         }
       });
 
@@ -78,14 +79,15 @@ class UnAuthAPIProvider extends API {
 // 409：用户名已存在
 // 备注：400为暂定，可能需要细分
   Future<Response> register(String username, String password) =>
-      post('/users/register', {'username': username, 'passwd': password}).then((resp) {
+      post('/users/register', {'username': username, 'passwd': password})
+          .then((resp) {
         final message = resp.body['message'];
         if (resp.statusCode == 200) {
-          Get.snackbar('注册成功', message);
+          SmartDialog.showToast(message);
         } else if (resp.statusCode == 409) {
-          Get.snackbar('注册失败', message);
+          SmartDialog.showToast(message);
         } else {
-          Get.snackbar('注册失败', message);
+          SmartDialog.showToast(message);
         }
         return resp;
       });
@@ -105,7 +107,7 @@ class AuthedAPIProvider extends API {
 
     httpClient.addResponseModifier((request, response) {
       if (response.statusCode == 401) {
-        Get.snackbar('登录过期', '请重新登录');
+        SmartDialog.showToast('请重新登录');
         tokenManager.setToken(null);
         Get.offAllNamed('/login');
       }
@@ -125,11 +127,11 @@ class AuthedAPIProvider extends API {
 // 备注：用于消除token。但不检查username是否安全？
   Future<void> logout() => post('/users/logout', {}).then((resp) {
         if (resp.statusCode == 200) {
-          Get.snackbar('登出成功', resp.body['message']);
+          SmartDialog.showToast(resp.body['message']);
           tokenManager.setToken(null);
           Get.offAllNamed('/login');
         } else {
-          Get.snackbar('登出失败', resp.body['message']);
+          SmartDialog.showToast(resp.body['message']);
         }
       });
 
@@ -148,7 +150,8 @@ class AuthedAPIProvider extends API {
 // 1.	暂定登录后允许修改密码
 // 2.	对于该api，401可能表示token错误或者原密码错误，视情况而定
   Future<Response> changePassword(String oldPassword, String newPassword) =>
-      post('/users/chPasswd', {'old_passwd': oldPassword, 'new_passwd': newPassword});
+      post('/users/chPasswd',
+          {'old_passwd': oldPassword, 'new_passwd': newPassword});
 
 // 获取模型列表
 // URL：/model/getList
@@ -160,11 +163,12 @@ class AuthedAPIProvider extends API {
 // 1.	status/message：
 // 200：获取成功
 
-  Future<ModelListResponse?> getModelList() => get('/model/getList').then((value) {
+  Future<ModelListResponse?> getModelList() =>
+      get('/model/getList').then((value) {
         if (value.statusCode == 200) {
           return ModelListResponse.fromJson(value.body);
         } else {
-          Get.snackbar('获取模型列表失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
           return null;
         }
       });
@@ -183,13 +187,14 @@ class AuthedAPIProvider extends API {
 // 404：模型不存在
 // 备注：因为未设置取消训练功能，暂定训练中的模型不可被删除(前端禁止点击)
 
-  Future<void> deleteModel(int modelId) => post('/model/del', {'model_id': modelId}).then((value) {
+  Future<void> deleteModel(int modelId) =>
+      post('/model/del', {'model_id': modelId}).then((value) {
         if (value.statusCode == 200) {
-          Get.snackbar('删除成功', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         } else if (value.statusCode == 403) {
-          Get.snackbar('删除失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         } else {
-          Get.snackbar('删除失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         }
       });
 
@@ -213,16 +218,20 @@ class AuthedAPIProvider extends API {
 // 2.	403留给公共模型，禁止修改名称和备注（暂定）
 
   Future<void> changeModelInfo(int modelId, String modelName, String remark) =>
-      post('/model/chInfo', {'model_id': modelId, 'model_name': modelName, 'remark': remark}).then((value) {
+      post('/model/chInfo', {
+        'model_id': modelId,
+        'model_name': modelName,
+        'remark': remark
+      }).then((value) {
         final message = value.body['message'];
         if (value.statusCode == 200) {
-          Get.snackbar('修改成功', message);
+          SmartDialog.showToast(message);
         } else if (value.statusCode == 400) {
-          Get.snackbar('修改失败', message);
+          SmartDialog.showToast(message);
         } else if (value.statusCode == 403) {
-          Get.snackbar('修改失败', message);
+          SmartDialog.showToast(message);
         } else {
-          Get.snackbar('修改失败', message);
+          SmartDialog.showToast(message);
         }
       });
 
@@ -244,7 +253,7 @@ class AuthedAPIProvider extends API {
   void _download(String filename, Stream<List<int>> bytes) async {
     final dir = await getDownloadsDirectory();
     if (dir == null) {
-      Get.snackbar('下载失败', '无法获取下载目录');
+      SmartDialog.showToast('无法获取下载目录');
       return;
     }
     final file = File('${dir.path}/$filename');
@@ -256,17 +265,18 @@ class AuthedAPIProvider extends API {
     });
   }
 
-  Future<void> downloadModel(int modelId) => get('/download/model/model_id=$modelId').then((value) async {
+  Future<void> downloadModel(int modelId) =>
+      get('/download/model/model_id=$modelId').then((value) async {
         if (value.statusCode == 200) {
           final filename = 'model-$modelId.zip';
           final bytes = value.bodyBytes;
           if (bytes == null) {
-            Get.snackbar('下载失败', '无法获取下载内容');
+            SmartDialog.showToast('无法获取下载内容');
             return;
           }
           _download(filename, bytes);
         } else {
-          Get.snackbar('下载失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         }
       });
 
@@ -282,17 +292,18 @@ class AuthedAPIProvider extends API {
 // 200：下载成功
 // 404：模型不存在
 
-  Future<void> downloadReport(int modelId) => get('/download/report/model_id=$modelId').then((resp) {
+  Future<void> downloadReport(int modelId) =>
+      get('/download/report/model_id=$modelId').then((resp) {
         if (resp.statusCode == 200) {
           final filename = 'report-$modelId.txt';
           final bytes = resp.bodyBytes;
           if (bytes == null) {
-            Get.snackbar('下载失败', '无法获取下载内容');
+            SmartDialog.showToast('无法获取下载内容');
             return;
           }
           _download(filename, bytes);
         } else {
-          Get.snackbar('下载失败', resp.body['message']);
+          SmartDialog.showToast(resp.body['message']);
         }
       });
 
@@ -308,11 +319,12 @@ class AuthedAPIProvider extends API {
 // 200：成功
 // 404：模型不存在
 
-  Future<ModelDetail?> getModelDetail(int modelId) => get('/model/getDetail?model_id=$modelId').then((value) {
+  Future<ModelDetail?> getModelDetail(int modelId) =>
+      get('/model/getDetail?model_id=$modelId').then((value) {
         if (value.statusCode == 200) {
           return ModelDetail.fromJson(value.body['model_detail']);
         } else {
-          Get.snackbar('获取失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
           return null;
         }
       });
@@ -341,11 +353,12 @@ class AuthedAPIProvider extends API {
 // …
 // ]
 
-  Future<DataSetListResponse?> getDatasetList() => get('/dataset/getList').then((value) {
+  Future<DataSetListResponse?> getDatasetList() =>
+      get('/dataset/getList').then((value) {
         if (value.statusCode == 200) {
           return DataSetListResponse.fromJson(value.body);
         } else {
-          Get.snackbar('获取失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
           return null;
         }
       });
@@ -381,13 +394,19 @@ class AuthedAPIProvider extends API {
 // ]
 // 备注：关于拆分比例，是否需要拆分成两个参数传递
 
-  Future<(DataSet, DataSet)?> splitDataset(int datasetId, String ratio, String name1, String name2) =>
-      post('/dataset/split', {'dataset_id': datasetId, 'ratio': ratio, 'name1': name1, 'name2': name2}).then((value) {
+  Future<(DataSet, DataSet)?> splitDataset(
+          int datasetId, String ratio, String name1, String name2) =>
+      post('/dataset/split', {
+        'dataset_id': datasetId,
+        'ratio': ratio,
+        'name1': name1,
+        'name2': name2
+      }).then((value) {
         if (value.statusCode == 200) {
           final list = value.body['new_dataset'];
           return (DataSet.fromJson(list[0]), DataSet.fromJson(list[1]));
         } else {
-          Get.snackbar('拆分失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
           return null;
         }
       });
@@ -404,11 +423,12 @@ class AuthedAPIProvider extends API {
 // 200：成功删除
 // 404：数据集不存在
 
-  Future<void> deleteDataset(int datasetId) => post('/dataset/del', {'dataset_id': datasetId}).then((value) {
+  Future<void> deleteDataset(int datasetId) =>
+      post('/dataset/del', {'dataset_id': datasetId}).then((value) {
         if (value.statusCode == 200) {
-          Get.snackbar('删除成功', '数据集已删除');
+          SmartDialog.showToast('数据集已删除');
         } else {
-          Get.snackbar('删除失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         }
       });
 
@@ -424,17 +444,18 @@ class AuthedAPIProvider extends API {
 // 200：下载成功
 // 404：数据集不存在
 
-  Future<void> downloadDataset(int datasetId) => get('/download/dataset/dataset_id=$datasetId').then((value) {
+  Future<void> downloadDataset(int datasetId) =>
+      get('/download/dataset/dataset_id=$datasetId').then((value) {
         if (value.statusCode == 200) {
           final filename = 'dataset-$datasetId.csv';
           final bytes = value.bodyBytes;
           if (bytes == null) {
-            Get.snackbar('下载失败', '无法获取下载内容');
+            SmartDialog.showToast('无法获取下载内容');
             return;
           }
           _download(filename, bytes);
         } else {
-          Get.snackbar('下载失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         }
       });
 
@@ -467,11 +488,16 @@ class AuthedAPIProvider extends API {
 // 备注：具体如何判断文件过大，以什么标准待定
 
   Future<void> uploadDataset(String name, dynamic file, String filename) =>
-      post('/upload/dataset', FormData({'name': name, 'file': MultipartFile(file, filename: filename)})).then((value) {
+      post(
+          '/upload/dataset',
+          FormData({
+            'name': name,
+            'file': MultipartFile(file, filename: filename)
+          })).then((value) {
         if (value.statusCode == 200) {
-          Get.snackbar('上传成功', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         } else {
-          Get.snackbar('上传失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         }
       });
 
@@ -535,8 +561,14 @@ class AuthedAPIProvider extends API {
 // 	}
 // 备注：训练无法开始时返回内容仅包含status、code、message等，具体的错误会在code和message中给出。训练成功开始时持续返回JSON，每个JSON都包含上述内容（1、2、4、5）
 
-  Future<Response> train(String modelName, int datasetId, String modelType, Map<String, dynamic> params) =>
-      post('/train', {'model_name': modelName, 'dataset_id': datasetId, 'model_type': modelType, 'params': params});
+  Future<Response> train(String modelName, int datasetId, String modelType,
+          Map<String, dynamic> params) =>
+      post('/train', {
+        'model_name': modelName,
+        'dataset_id': datasetId,
+        'model_type': modelType,
+        'params': params
+      });
 
 // 获取正在训练的模型
 // URL：/train/training
@@ -599,120 +631,12 @@ class AuthedAPIProvider extends API {
           const filename = 'predict.csv';
           final bytes = value.bodyBytes;
           if (bytes == null) {
-            Get.snackbar('下载失败', '无法获取下载内容');
+            SmartDialog.showToast('无法获取下载内容');
             return;
           }
           _download(filename, bytes);
         } else {
-          Get.snackbar('下载失败', value.body['message']);
+          SmartDialog.showToast(value.body['message']);
         }
       });
-}
-
-
-extension on GetInterface {
-  SnackbarController snackbar(
-      String title,
-      String message, {
-        Color? colorText,
-        Duration? duration = const Duration(seconds: 2),
-
-        /// with instantInit = false you can put snackbar on initState
-        bool instantInit = true,
-        SnackPosition? snackPosition,
-        Widget? titleText,
-        Widget? messageText,
-        Widget? icon,
-        bool? shouldIconPulse,
-        double? maxWidth,
-        EdgeInsets? margin,
-        EdgeInsets? padding,
-        double? borderRadius,
-        Color? borderColor,
-        double? borderWidth,
-        Color? backgroundColor,
-        Color? leftBarIndicatorColor,
-        List<BoxShadow>? boxShadows,
-        Gradient? backgroundGradient,
-        TextButton? mainButton,
-        OnTap? onTap,
-        bool? isDismissible,
-        bool? showProgressIndicator,
-        DismissDirection? dismissDirection,
-        AnimationController? progressIndicatorController,
-        Color? progressIndicatorBackgroundColor,
-        Animation<Color>? progressIndicatorValueColor,
-        SnackStyle? snackStyle,
-        Curve? forwardAnimationCurve,
-        Curve? reverseAnimationCurve,
-        Duration? animationDuration,
-        double? barBlur,
-        double? overlayBlur,
-        SnackbarStatusCallback? snackbarStatus,
-        Color? overlayColor,
-        Form? userInputForm,
-      }) {
-    final getSnackBar = GetSnackBar(
-        snackbarStatus: snackbarStatus,
-        titleText: titleText ??
-            Text(
-              title,
-              style: TextStyle(
-                color: colorText ?? Colors.black,
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-              ),
-            ),
-        messageText: messageText ??
-            Text(
-              message,
-              style: TextStyle(
-                color: colorText  ?? Colors.black,
-                fontWeight: FontWeight.w300,
-                fontSize: 14,
-              ),
-            ),
-        snackPosition: snackPosition ?? SnackPosition.TOP,
-        borderRadius: borderRadius ?? 15,
-        margin: margin ?? const EdgeInsets.symmetric(horizontal: 10),
-        duration: duration,
-        barBlur: barBlur ?? 7.0,
-        backgroundColor: backgroundColor ?? Colors.grey.withOpacity(0.2),
-        icon: icon,
-        shouldIconPulse: shouldIconPulse ?? true,
-        maxWidth: maxWidth,
-        padding: padding ?? const EdgeInsets.all(16),
-        borderColor: borderColor,
-        borderWidth: borderWidth,
-        leftBarIndicatorColor: leftBarIndicatorColor,
-        boxShadows: boxShadows,
-        backgroundGradient: backgroundGradient,
-        mainButton: mainButton,
-        onTap: onTap,
-        isDismissible: isDismissible ?? true,
-        dismissDirection: dismissDirection,
-        showProgressIndicator: showProgressIndicator ?? false,
-        progressIndicatorController: progressIndicatorController,
-        progressIndicatorBackgroundColor: progressIndicatorBackgroundColor,
-        progressIndicatorValueColor: progressIndicatorValueColor,
-        snackStyle: snackStyle ?? SnackStyle.FLOATING,
-        forwardAnimationCurve: forwardAnimationCurve ?? Curves.easeOutCirc,
-        reverseAnimationCurve: reverseAnimationCurve ?? Curves.easeOutCirc,
-        animationDuration: animationDuration ?? const Duration(seconds: 1),
-        overlayBlur: overlayBlur ?? 0.0,
-        overlayColor: overlayColor ?? Colors.transparent,
-        userInputForm: userInputForm);
-
-    final controller = SnackbarController(getSnackBar);
-
-    if (instantInit) {
-      controller.show();
-    } else {
-      //routing.isSnackbar = true;
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        controller.show();
-      });
-    }
-    return controller;
-  }
 }
