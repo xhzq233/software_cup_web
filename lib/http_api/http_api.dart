@@ -9,8 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:software_cup_web/http_api/model.dart';
 import 'package:software_cup_web/token/token.dart';
 
-const baseUrl =
-    kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
+const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
 final unAuthAPI = Get.put(UnAuthAPIProvider());
 final authedAPI = Get.put(AuthedAPIProvider());
 
@@ -51,8 +50,7 @@ class UnAuthAPIProvider extends API {
 // 401：用户名或密码错误
 // 2.	token：	//登录成功时返回
   Future<void> login(String username, String passwd) =>
-      post('/users/login', {'username': username, 'passwd': passwd})
-          .then((resp) {
+      post('/users/login', {'username': username, 'passwd': passwd}).then((resp) {
         final message = resp.body['message'];
         if (resp.statusCode == 200) {
           final token = resp.body['token'];
@@ -79,8 +77,7 @@ class UnAuthAPIProvider extends API {
 // 409：用户名已存在
 // 备注：400为暂定，可能需要细分
   Future<Response> register(String username, String password) =>
-      post('/users/register', {'username': username, 'passwd': password})
-          .then((resp) {
+      post('/users/register', {'username': username, 'passwd': password}).then((resp) {
         final message = resp.body['message'];
         if (resp.statusCode == 200) {
           SmartDialog.showToast(message);
@@ -116,6 +113,23 @@ class AuthedAPIProvider extends API {
     super.onInit();
   }
 
+  // URL：/users/getusername
+  // 请求类型：POST
+  // 参数：无
+  // 请求头：token
+  // 响应内容：
+  // 1. status/message：
+  // 200：username (str)
+  // 401：token错误或者缺失
+  Future<String?> getUsername() => post('/users/getusername', {}).then((resp) {
+        if (resp.statusCode == 200) {
+          return resp.body['message'];
+        } else {
+          SmartDialog.showToast(resp.body['message']);
+          return null;
+        }
+      });
+
 // 登出
 // URL：/users/logout
 // 请求类型：POST
@@ -150,8 +164,7 @@ class AuthedAPIProvider extends API {
 // 1.	暂定登录后允许修改密码
 // 2.	对于该api，401可能表示token错误或者原密码错误，视情况而定
   Future<Response> changePassword(String oldPassword, String newPassword) =>
-      post('/users/chPasswd',
-          {'old_passwd': oldPassword, 'new_passwd': newPassword});
+      post('/users/chPasswd', {'old_passwd': oldPassword, 'new_passwd': newPassword});
 
 // 获取模型列表
 // URL：/model/getList
@@ -163,8 +176,7 @@ class AuthedAPIProvider extends API {
 // 1.	status/message：
 // 200：获取成功
 
-  Future<ModelListResponse?> getModelList() =>
-      get('/model/getList').then((value) {
+  Future<ModelListResponse?> getModelList() => get('/model/getList').then((value) {
         if (value.statusCode == 200) {
           return ModelListResponse.fromJson(value.body);
         } else {
@@ -187,8 +199,7 @@ class AuthedAPIProvider extends API {
 // 404：模型不存在
 // 备注：因为未设置取消训练功能，暂定训练中的模型不可被删除(前端禁止点击)
 
-  Future<void> deleteModel(int modelId) =>
-      post('/model/del', {'model_id': modelId}).then((value) {
+  Future<void> deleteModel(int modelId) => post('/model/del', {'model_id': modelId}).then((value) {
         if (value.statusCode == 200) {
           SmartDialog.showToast(value.body['message']);
         } else if (value.statusCode == 403) {
@@ -218,11 +229,7 @@ class AuthedAPIProvider extends API {
 // 2.	403留给公共模型，禁止修改名称和备注（暂定）
 
   Future<void> changeModelInfo(int modelId, String modelName, String remark) =>
-      post('/model/chInfo', {
-        'model_id': modelId,
-        'model_name': modelName,
-        'remark': remark
-      }).then((value) {
+      post('/model/chInfo', {'model_id': modelId, 'model_name': modelName, 'remark': remark}).then((value) {
         final message = value.body['message'];
         if (value.statusCode == 200) {
           SmartDialog.showToast(message);
@@ -265,8 +272,7 @@ class AuthedAPIProvider extends API {
     });
   }
 
-  Future<void> downloadModel(int modelId) =>
-      get('/download/model/model_id=$modelId').then((value) async {
+  Future<void> downloadModel(int modelId) => get('/download/model/model_id=$modelId').then((value) async {
         if (value.statusCode == 200) {
           final filename = 'model-$modelId.zip';
           final bytes = value.bodyBytes;
@@ -292,8 +298,7 @@ class AuthedAPIProvider extends API {
 // 200：下载成功
 // 404：模型不存在
 
-  Future<void> downloadReport(int modelId) =>
-      get('/download/report/model_id=$modelId').then((resp) {
+  Future<void> downloadReport(int modelId) => get('/download/report/model_id=$modelId').then((resp) {
         if (resp.statusCode == 200) {
           final filename = 'report-$modelId.txt';
           final bytes = resp.bodyBytes;
@@ -319,8 +324,7 @@ class AuthedAPIProvider extends API {
 // 200：成功
 // 404：模型不存在
 
-  Future<ModelDetail?> getModelDetail(int modelId) =>
-      get('/model/getDetail?model_id=$modelId').then((value) {
+  Future<ModelDetail?> getModelDetail(int modelId) => get('/model/getDetail?model_id=$modelId').then((value) {
         if (value.statusCode == 200) {
           return ModelDetail.fromJson(value.body['model_detail']);
         } else {
@@ -353,8 +357,7 @@ class AuthedAPIProvider extends API {
 // …
 // ]
 
-  Future<DataSetListResponse?> getDatasetList() =>
-      get('/dataset/getList').then((value) {
+  Future<DataSetListResponse?> getDatasetList() => get('/dataset/getList').then((value) {
         if (value.statusCode == 200) {
           return DataSetListResponse.fromJson(value.body);
         } else {
@@ -394,14 +397,8 @@ class AuthedAPIProvider extends API {
 // ]
 // 备注：关于拆分比例，是否需要拆分成两个参数传递
 
-  Future<(DataSet, DataSet)?> splitDataset(
-          int datasetId, String ratio, String name1, String name2) =>
-      post('/dataset/split', {
-        'dataset_id': datasetId,
-        'ratio': ratio,
-        'name1': name1,
-        'name2': name2
-      }).then((value) {
+  Future<(DataSet, DataSet)?> splitDataset(int datasetId, String ratio, String name1, String name2) =>
+      post('/dataset/split', {'dataset_id': datasetId, 'ratio': ratio, 'name1': name1, 'name2': name2}).then((value) {
         if (value.statusCode == 200) {
           final list = value.body['new_dataset'];
           return (DataSet.fromJson(list[0]), DataSet.fromJson(list[1]));
@@ -423,8 +420,7 @@ class AuthedAPIProvider extends API {
 // 200：成功删除
 // 404：数据集不存在
 
-  Future<void> deleteDataset(int datasetId) =>
-      post('/dataset/del', {'dataset_id': datasetId}).then((value) {
+  Future<void> deleteDataset(int datasetId) => post('/dataset/del', {'dataset_id': datasetId}).then((value) {
         if (value.statusCode == 200) {
           SmartDialog.showToast('数据集已删除');
         } else {
@@ -444,8 +440,7 @@ class AuthedAPIProvider extends API {
 // 200：下载成功
 // 404：数据集不存在
 
-  Future<void> downloadDataset(int datasetId) =>
-      get('/download/dataset/dataset_id=$datasetId').then((value) {
+  Future<void> downloadDataset(int datasetId) => get('/download/dataset/dataset_id=$datasetId').then((value) {
         if (value.statusCode == 200) {
           final filename = 'dataset-$datasetId.csv';
           final bytes = value.bodyBytes;
@@ -488,12 +483,7 @@ class AuthedAPIProvider extends API {
 // 备注：具体如何判断文件过大，以什么标准待定
 
   Future<void> uploadDataset(String name, dynamic file, String filename) =>
-      post(
-          '/upload/dataset',
-          FormData({
-            'name': name,
-            'file': MultipartFile(file, filename: filename)
-          })).then((value) {
+      post('/upload/dataset', FormData({'name': name, 'file': MultipartFile(file, filename: filename)})).then((value) {
         if (value.statusCode == 200) {
           SmartDialog.showToast(value.body['message']);
         } else {
@@ -561,14 +551,8 @@ class AuthedAPIProvider extends API {
 // 	}
 // 备注：训练无法开始时返回内容仅包含status、code、message等，具体的错误会在code和message中给出。训练成功开始时持续返回JSON，每个JSON都包含上述内容（1、2、4、5）
 
-  Future<Response> train(String modelName, int datasetId, String modelType,
-          Map<String, dynamic> params) =>
-      post('/train', {
-        'model_name': modelName,
-        'dataset_id': datasetId,
-        'model_type': modelType,
-        'params': params
-      });
+  Future<Response> train(String modelName, int datasetId, String modelType, Map<String, dynamic> params) =>
+      post('/train', {'model_name': modelName, 'dataset_id': datasetId, 'model_type': modelType, 'params': params});
 
 // 获取正在训练的模型
 // URL：/train/training

@@ -1,3 +1,4 @@
+import 'package:software_cup_web/ext.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/pages/home/desc_page.dart';
 import 'package:software_cup_web/pages/home/doc_page.dart';
@@ -45,17 +46,26 @@ enum HomePageIndex {
 
 class _HomePageState extends State<HomePage> {
   final index = HomePageIndex.description.obs;
+  final _username = Rx<String?>(null);
+
+  @override
+  void initState() {
+    super.initState();
+    authedAPI.getUsername().then((value) => _username.value = value);
+  }
 
   Widget _buildTabBar() {
     final tabBar = TabBar(
       tabs: HomePageIndex.values.map((e) => Tab(text: e.name)).toList(),
       onTap: (index) => this.index(HomePageIndex.values[index]),
     );
-    final username = Expanded(
-      child: Text(
-        tokenManager.token ?? '未登录',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+    final username = Flexible(
+      child: Obx(
+        () => Text(
+          _username.value ?? '未登录',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
     );
     final theme = Theme.of(context);
@@ -68,15 +78,15 @@ class _HomePageState extends State<HomePage> {
       },
     );
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(child: tabBar),
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 168),
+          constraints: const BoxConstraints(maxWidth: 168, minWidth: 0),
           child: Column(
             children: [
               const Spacer(),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(width: 6),
                   avatarView,
@@ -85,9 +95,11 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const Spacer(),
-              Transform.translate(
-                offset: const Offset(0, 0.5),
-                child: Divider(height: 1, thickness: 1, color: theme.colorScheme.surfaceVariant),
+              Flexible(
+                child: Transform.translate(
+                  offset: const Offset(0, 0.5),
+                  child: Divider(height: 1, thickness: 1, color: theme.colorScheme.surfaceVariant),
+                ),
               ),
             ],
           ),
