@@ -1,3 +1,4 @@
+import 'package:boxy/flex.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/pages/home/desc_page.dart';
 import 'package:software_cup_web/pages/home/doc_page.dart';
@@ -81,24 +82,24 @@ class _HomePageState extends State<HomePage> {
         Expanded(child: tabBar),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 168, minWidth: 0),
-          child: Column(
+          child: BoxyColumn(
             children: [
               const Spacer(),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(width: 6),
-                  avatarView,
-                  username,
-                  const SizedBox(width: 12),
-                ],
+              Dominant(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 6),
+                    avatarView,
+                    username,
+                    const SizedBox(width: 12),
+                  ],
+                ),
               ),
               const Spacer(),
-              Flexible(
-                child: Transform.translate(
-                  offset: const Offset(0, 0.5),
-                  child: Divider(height: 1, thickness: 1, color: theme.colorScheme.surfaceVariant),
-                ),
+              Transform.translate(
+                offset: const Offset(0, 0.5),
+                child: SizedBox(height: 1, child: ColoredBox(color: theme.colorScheme.surfaceVariant)),
               ),
             ],
           ),

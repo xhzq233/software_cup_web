@@ -17,6 +17,7 @@ dependencies:
   file_picker: ^5.3.2
   flutter_smart_dialog: ^4.9.3+1
   crypto: ^3.0.3
+  boxy: ^2.0.9
 
 dev_dependencies:
   flutter_test:
