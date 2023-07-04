@@ -258,3 +258,47 @@ class DataSet {
 
   Map<String, dynamic> toJson() => _$DataSetToJson(this);
 }
+
+// 	2.  k_class:		//class数量
+// 3.	report_num: //报告数量
+// 4.  report:		//数据集报告列表，可以看到对应的模型（基本同模型报告）
+// [
+// {
+// 	model_id:	//对应的模型
+// 	precision:
+// 	recall:
+// 	f1:
+// class_res:		//类型列表,列表元素个数等于k_class
+// [
+// 		{			//每类的结果
+// 			precision:
+// 			recall:
+// 			f1:
+// },
+// …
+// ]
+// },
+// ……
+// ]
+@JsonSerializable()
+class DataSetDetail {
+  @JsonKey(name: 'message')
+  final String message;
+  @JsonKey(name: 'k_class')
+  final int kClass;
+  @JsonKey(name: 'report_num')
+  final int reportNum;
+  @JsonKey(name: 'report')
+  final List<Report> report;
+
+  DataSetDetail({
+    required this.message,
+    required this.kClass,
+    required this.reportNum,
+    required this.report,
+  });
+
+  factory DataSetDetail.fromJson(Map<String, dynamic> json) => _$DataSetDetailFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DataSetDetailToJson(this);
+}

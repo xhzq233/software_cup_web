@@ -138,3 +138,21 @@ Map<String, dynamic> _$DataSetToJson(DataSet instance) => <String, dynamic>{
       'label_state': instance.labelState,
       'source': instance.source,
     };
+
+DataSetDetail _$DataSetDetailFromJson(Map<String, dynamic> json) =>
+    DataSetDetail(
+      message: json['message'] as String,
+      kClass: json['k_class'] as int,
+      reportNum: json['report_num'] as int,
+      report: (json['report'] as List<dynamic>)
+          .map((e) => Report.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$DataSetDetailToJson(DataSetDetail instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'k_class': instance.kClass,
+      'report_num': instance.reportNum,
+      'report': instance.report,
+    };

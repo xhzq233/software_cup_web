@@ -23,6 +23,8 @@ abstract class API extends GetConnect {
     // log
     httpClient.addRequestModifier<Object?>((request) {
       log('${request.method} ${request.url} headers: ${request.headers}');
+      SmartDialog.dismiss(status: SmartStatus.loading, force: true);
+      SmartDialog.showLoading();
       request.bodyBytes.toBytes().then((value) {
         final body = utf8.decode(value.toList());
         if (body.trim().isEmpty) return;
@@ -32,6 +34,7 @@ abstract class API extends GetConnect {
     });
     httpClient.addResponseModifier((request, response) {
       log('${response.statusCode} ${response.body}');
+      SmartDialog.dismiss(status: SmartStatus.loading);
       return response;
     });
     httpClient.defaultContentType = 'application/json';
@@ -377,6 +380,24 @@ class AuthedAPIProvider extends API {
         }
       });
 
+  // 获取数据集详情*
+  // URL：/dataset/getDetail
+  // 请求：GET
+  // 参数：dataset_id
+  // 请求头：token
+  // 响应内容：
+  // 1.	status/message：
+  // 200：成功
+  // 404：数据集不存在
+  Future<DataSetDetail?> getDatasetDetail(int id) => get('/dataset/getDetail?dataset_id=$id').then((value) {
+        if (value.statusCode == 200) {
+          return DataSetDetail.fromJson(value.body);
+        } else {
+          SmartDialog.showToast(value.body['message']);
+          return null;
+        }
+      });
+
 // 数据集拆分
 // URL： /dataset/split
 // 请求类型：POST
@@ -498,6 +519,7 @@ class AuthedAPIProvider extends API {
         if (value.statusCode == 200) {
           SmartDialog.showToast(value.body['message']);
           storageProvider.forceGetDatasetList();
+          Get.back();
         } else {
           SmartDialog.showToast(value.body['message']);
         }

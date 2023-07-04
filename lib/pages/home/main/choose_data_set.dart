@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 
@@ -70,6 +71,7 @@ class _ChooseDatasetPopUpState extends State<ChooseDatasetPopUp> {
                   // choose file
                   TextButton(
                     onPressed: () async {
+                      SmartDialog.showLoading();
                       FilePickerResult? result = await FilePicker.platform.pickFiles(
                         type: FileType.any,
                         allowMultiple: false,
@@ -80,6 +82,7 @@ class _ChooseDatasetPopUpState extends State<ChooseDatasetPopUp> {
                       } else {
                         // User canceled the picker
                       }
+                      SmartDialog.dismiss(status: SmartStatus.loading);
                     },
                     child: const Text('选择文件'),
                   ),
