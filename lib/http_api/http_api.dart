@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:software_cup_web/http_api/model.dart';
 import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/token/token.dart';
+import 'package:crypto/crypto.dart';
 
 const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
 final unAuthAPI = Get.put(UnAuthAPIProvider());
@@ -38,6 +39,14 @@ abstract class API extends GetConnect {
   }
 }
 
+extension on String {
+  String get md5Val {
+    final content = utf8.encode(this);
+    final digest = md5.convert(content);
+    return digest.toString();
+  }
+}
+
 class UnAuthAPIProvider extends API {
 // 登录
 // URL：/users/login
@@ -51,7 +60,7 @@ class UnAuthAPIProvider extends API {
 // 401：用户名或密码错误
 // 2.	token：	//登录成功时返回
   Future<void> login(String username, String passwd) =>
-      post('/users/login', {'username': username, 'passwd': passwd}).then((resp) {
+      post('/users/login', {'username': username, 'passwd': passwd.md5Val}).then((resp) {
         final message = resp.body['message'];
         if (resp.statusCode == 200) {
           final token = resp.body['token'];
@@ -78,8 +87,8 @@ class UnAuthAPIProvider extends API {
 // 400：用户名/密码过长/过短
 // 409：用户名已存在
 // 备注：400为暂定，可能需要细分
-  Future<Response> register(String username, String password) =>
-      post('/users/register', {'username': username, 'passwd': password}).then((resp) {
+  Future<Response> register(String username, String passwd) =>
+      post('/users/register', {'username': username, 'passwd': passwd.md5Val}).then((resp) {
         final message = resp.body['message'];
         if (resp.statusCode == 200) {
           SmartDialog.showToast(message);
@@ -166,7 +175,7 @@ class AuthedAPIProvider extends API {
 // 1.	暂定登录后允许修改密码
 // 2.	对于该api，401可能表示token错误或者原密码错误，视情况而定
   Future<Response> changePassword(String oldPassword, String newPassword) =>
-      post('/users/chPasswd', {'old_passwd': oldPassword, 'new_passwd': newPassword});
+      post('/users/chPasswd', {'old_passwd': oldPassword.md5Val, 'new_passwd': newPassword.md5Val});
 
 // 获取模型列表
 // URL：/model/getList

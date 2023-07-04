@@ -1,4 +1,3 @@
-import 'package:software_cup_web/ext.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/pages/home/desc_page.dart';
 import 'package:software_cup_web/pages/home/doc_page.dart';
