@@ -23,4 +23,10 @@ class StorageProvider extends GetxService {
         break;
     }
   }
+
+  void refresh() {
+    dataSetListResponse(null);
+    modelListResponse(null);
+  }
+
 }

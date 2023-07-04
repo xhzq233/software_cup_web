@@ -7,6 +7,7 @@ import 'package:get/get.dart' hide ExtensionSnackbar;
 import 'package:get/get_connect/http/src/request/request.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:software_cup_web/http_api/model.dart';
+import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/token/token.dart';
 
 const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
@@ -56,6 +57,7 @@ class UnAuthAPIProvider extends API {
           final token = resp.body['token'];
           tokenManager.setToken(token);
           SmartDialog.showToast(message);
+          storageProvider.refresh();
           Get.offAllNamed('/home');
         } else if (resp.statusCode == 401) {
           SmartDialog.showToast(message);
