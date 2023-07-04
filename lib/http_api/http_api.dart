@@ -497,6 +497,7 @@ class AuthedAPIProvider extends API {
       post('/upload/dataset', FormData({'name': name, 'file': MultipartFile(file, filename: filename)})).then((value) {
         if (value.statusCode == 200) {
           SmartDialog.showToast(value.body['message']);
+          storageProvider.forceGetDatasetList();
         } else {
           SmartDialog.showToast(value.body['message']);
         }

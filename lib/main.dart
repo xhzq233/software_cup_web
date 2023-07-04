@@ -6,6 +6,7 @@ import 'package:software_cup_web/token/token.dart';
 import 'package:flutter/material.dart';
 
 void main() {
+  Get.config(defaultTransition: Transition.fadeIn);
   runApp(const App());
 }
 

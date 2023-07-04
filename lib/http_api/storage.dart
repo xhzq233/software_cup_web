@@ -12,16 +12,20 @@ class StorageProvider extends GetxService {
   void switchedMainPageTab(MainPageIndex index) {
     switch (index) {
       case MainPageIndex.data:
-        if (dataSetListResponse() == null) {
-          authedAPI.getDatasetList().then(dataSetListResponse);
-        }
+        if (dataSetListResponse() == null) forceGetDatasetList();
       case MainPageIndex.model:
-        if (modelListResponse() == null) {
-          authedAPI.getModelList().then(modelListResponse);
-        }
+        if (modelListResponse() == null) forceGetModelList();
       default:
         break;
     }
+  }
+
+  void forceGetDatasetList() {
+    authedAPI.getDatasetList().then(dataSetListResponse);
+  }
+
+  void forceGetModelList() {
+    authedAPI.getModelList().then(modelListResponse);
   }
 
   void refresh() {
