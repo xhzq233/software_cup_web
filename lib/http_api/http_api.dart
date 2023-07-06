@@ -1,43 +1,81 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart' hide ExtensionSnackbar;
-import 'package:get/get_connect/http/src/request/request.dart';
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import 'package:path_provider/path_provider.dart';
 import 'package:software_cup_web/http_api/model.dart';
 import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/token/token.dart';
 import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
+import 'package:path/path.dart';
 
 const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
 final unAuthAPI = Get.put(UnAuthAPIProvider());
 final authedAPI = Get.put(AuthedAPIProvider());
 
-abstract class API extends GetConnect {
+Future<String> _getDownloadUrl(String filename) async {
+  final dir = await getDownloadsDirectory();
+  log('download dir: $dir, filename: $filename');
+  final String path;
+  if (dir == null) {
+    path = join((await getTemporaryDirectory()).path, filename);
+  } else {
+    path = join(dir.path, filename);
+  }
+  SmartDialog.showToast('文件已保存至：$path');
+  return path;
+}
+
+class CustomInterceptors extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    log('REQUEST[${options.method}] => PATH: ${options.path} DATA: ${options.data}');
+    SmartDialog.dismiss(status: SmartStatus.loading, force: true);
+    SmartDialog.showLoading();
+    if (tokenManager.isAuthed) {
+      options.headers['token'] = tokenManager.token!;
+    }
+    super.onRequest(options, handler);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    log('RESPONSE[${response.statusCode}] <= PATH: ${response.requestOptions.path} DATA: ${response.data}');
+    SmartDialog.dismiss(status: SmartStatus.loading);
+    if (response.statusCode == 401) {
+      SmartDialog.showToast('请重新登录');
+      tokenManager.setToken(null);
+      Get.offAllNamed('/login');
+    }
+    super.onResponse(response, handler);
+  }
+
+  @override
+  Future onError(DioException err, ErrorInterceptorHandler handler) async {
+    log('ERROR[${err.response?.statusCode}] <= PATH: ${err.requestOptions.path} DATA: ${err.response?.data}');
+    if (err.response != null) {
+      err.response?.statusCode = 200;
+      handler.resolve(err.response!);
+    } else {
+      SmartDialog.showToast('网络错误');
+      super.onError(err, handler);
+    }
+  }
+}
+
+abstract class API extends GetLifeCycle {
+  final httpClient = Dio(BaseOptions(
+    baseUrl: baseUrl,
+    responseType: ResponseType.json,
+    contentType: 'application/json',
+  ));
+
   @override
   void onInit() {
-    httpClient.baseUrl = baseUrl;
     log('$runtimeType, baseUrl: $baseUrl');
-    // log
-    httpClient.addRequestModifier<Object?>((request) {
-      log('${request.method} ${request.url} headers: ${request.headers}');
-      SmartDialog.dismiss(status: SmartStatus.loading, force: true);
-      SmartDialog.showLoading();
-      request.bodyBytes.toBytes().then((value) {
-        final body = utf8.decode(value.toList());
-        if (body.trim().isEmpty) return;
-        log('body: $body');
-      });
-      return request;
-    });
-    httpClient.addResponseModifier((request, response) {
-      log('${response.statusCode} ${response.body}');
-      SmartDialog.dismiss(status: SmartStatus.loading);
-      return response;
-    });
-    httpClient.defaultContentType = 'application/json';
+    httpClient.interceptors.add(CustomInterceptors());
     super.onInit();
   }
 }
@@ -63,10 +101,10 @@ class UnAuthAPIProvider extends API {
 // 401：用户名或密码错误
 // 2.	token：	//登录成功时返回
   Future<void> login(String username, String passwd) =>
-      post('/users/login', {'username': username, 'passwd': passwd.md5Val}).then((resp) {
-        final message = resp.body['message'];
+      httpClient.post('/users/login', data: {'username': username, 'passwd': passwd.md5Val}).then((resp) {
+        final message = resp.data['message'];
         if (resp.statusCode == 200) {
-          final token = resp.body['token'];
+          final token = resp.data['token'];
           tokenManager.setToken(token);
           SmartDialog.showToast(message);
           storageProvider.refresh();
@@ -91,8 +129,8 @@ class UnAuthAPIProvider extends API {
 // 409：用户名已存在
 // 备注：400为暂定，可能需要细分
   Future<Response> register(String username, String passwd) =>
-      post('/users/register', {'username': username, 'passwd': passwd.md5Val}).then((resp) {
-        final message = resp.body['message'];
+      httpClient.post('/users/register', data: {'username': username, 'passwd': passwd.md5Val}).then((resp) {
+        final message = resp.data['message'];
         if (resp.statusCode == 200) {
           SmartDialog.showToast(message);
         } else if (resp.statusCode == 409) {
@@ -105,28 +143,6 @@ class UnAuthAPIProvider extends API {
 }
 
 class AuthedAPIProvider extends API {
-  AuthedAPIProvider();
-
-  @override
-  void onInit() {
-    httpClient.addRequestModifier<Object?>((request) {
-      if (tokenManager.isAuthed) {
-        request.headers['token'] = tokenManager.token!;
-      }
-      return request;
-    });
-
-    httpClient.addResponseModifier((request, response) {
-      if (response.statusCode == 401) {
-        SmartDialog.showToast('请重新登录');
-        tokenManager.setToken(null);
-        Get.offAllNamed('/login');
-      }
-      return response;
-    });
-    super.onInit();
-  }
-
   // URL：/users/getusername
   // 请求类型：POST
   // 参数：无
@@ -135,11 +151,11 @@ class AuthedAPIProvider extends API {
   // 1. status/message：
   // 200：username (str)
   // 401：token错误或者缺失
-  Future<String?> getUsername() => post('/users/getusername', {}).then((resp) {
+  Future<String?> getUsername() => httpClient.post('/users/getusername').then((resp) {
         if (resp.statusCode == 200) {
-          return resp.body['message'];
+          return resp.data['message'];
         } else {
-          SmartDialog.showToast(resp.body['message']);
+          SmartDialog.showToast(resp.data['message']);
           return null;
         }
       });
@@ -153,13 +169,13 @@ class AuthedAPIProvider extends API {
 // 1.	status/message：
 // 200：登出成功
 // 备注：用于消除token。但不检查username是否安全？
-  Future<void> logout() => post('/users/logout', {}).then((resp) {
+  Future<void> logout() => httpClient.post('/users/logout').then((resp) {
         if (resp.statusCode == 200) {
-          SmartDialog.showToast(resp.body['message']);
+          SmartDialog.showToast(resp.data['message']);
           tokenManager.setToken(null);
           Get.offAllNamed('/login');
         } else {
-          SmartDialog.showToast(resp.body['message']);
+          SmartDialog.showToast(resp.data['message']);
         }
       });
 
@@ -178,7 +194,7 @@ class AuthedAPIProvider extends API {
 // 1.	暂定登录后允许修改密码
 // 2.	对于该api，401可能表示token错误或者原密码错误，视情况而定
   Future<Response> changePassword(String oldPassword, String newPassword) =>
-      post('/users/chPasswd', {'old_passwd': oldPassword.md5Val, 'new_passwd': newPassword.md5Val});
+      httpClient.post('/users/chPasswd', data: {'old_passwd': oldPassword.md5Val, 'new_passwd': newPassword.md5Val});
 
 // 获取模型列表
 // URL：/model/getList
@@ -190,11 +206,11 @@ class AuthedAPIProvider extends API {
 // 1.	status/message：
 // 200：获取成功
 
-  Future<ModelListResponse?> getModelList() => get('/model/getList').then((value) {
+  Future<ModelListResponse?> getModelList() => httpClient.get('/model/getList').then((value) {
         if (value.statusCode == 200) {
-          return ModelListResponse.fromJson(value.body);
+          return ModelListResponse.fromJson(value.data);
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
           return null;
         }
       });
@@ -213,13 +229,13 @@ class AuthedAPIProvider extends API {
 // 404：模型不存在
 // 备注：因为未设置取消训练功能，暂定训练中的模型不可被删除(前端禁止点击)
 
-  Future<void> deleteModel(int modelId) => post('/model/del', {'model_id': modelId}).then((value) {
+  Future<void> deleteModel(int modelId) => httpClient.post('/model/del', data: {'model_id': modelId}).then((value) {
         if (value.statusCode == 200) {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
         } else if (value.statusCode == 403) {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
         }
       });
 
@@ -242,9 +258,9 @@ class AuthedAPIProvider extends API {
 // 1.	参数model_name和remark是可选的，至少一个
 // 2.	403留给公共模型，禁止修改名称和备注（暂定）
 
-  Future<void> changeModelInfo(int modelId, String modelName, String remark) =>
-      post('/model/chInfo', {'model_id': modelId, 'model_name': modelName, 'remark': remark}).then((value) {
-        final message = value.body['message'];
+  Future<void> changeModelInfo(int modelId, String modelName, String remark) => httpClient
+          .post('/model/chInfo', data: {'model_id': modelId, 'model_name': modelName, 'remark': remark}).then((value) {
+        final message = value.data['message'];
         if (value.statusCode == 200) {
           SmartDialog.showToast(message);
         } else if (value.statusCode == 400) {
@@ -271,33 +287,15 @@ class AuthedAPIProvider extends API {
 // 1.	下载类api如果成功就直接返回文件，下同
 // 2.	默认流式下载（也可以选择以附件的形式，不知道有什么区别）
 // 3.	是否需要限制用户下载数量（返回403）
-  void _download(String filename, Stream<List<int>> bytes) async {
-    final dir = await getDownloadsDirectory();
-    if (dir == null) {
-      SmartDialog.showToast('无法获取下载目录');
-      return;
-    }
-    final file = File('${dir.path}/$filename');
-    if (await file.exists()) {
-      await file.delete();
-    }
-    bytes.listen((event) {
-      file.writeAsBytes(event, mode: FileMode.append, flush: true);
-    });
-  }
-
-  Future<void> downloadModel(int modelId) => get('/download/model/model_id=$modelId').then((value) async {
+  Future<void> downloadModel(int modelId) async => httpClient
+          .download('/download/model?model_id=$modelId', await _getDownloadUrl('model-$modelId.zip'))
+          .then((value) {
         if (value.statusCode == 200) {
-          final filename = 'model-$modelId.zip';
-          final bytes = value.bodyBytes;
-          if (bytes == null) {
-            SmartDialog.showToast('无法获取下载内容');
-            return;
-          }
-          _download(filename, bytes);
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
         }
+      }, onError: (e) {
+        SmartDialog.showToast(e.toString());
       });
 
 // 下载模型报告
@@ -311,19 +309,17 @@ class AuthedAPIProvider extends API {
 // 1.	status/message：
 // 200：下载成功
 // 404：模型不存在
-
-  Future<void> downloadReport(int modelId) => get('/download/report/model_id=$modelId').then((resp) {
-        if (resp.statusCode == 200) {
-          final filename = 'report-$modelId.txt';
-          final bytes = resp.bodyBytes;
-          if (bytes == null) {
-            SmartDialog.showToast('无法获取下载内容');
-            return;
-          }
-          _download(filename, bytes);
+  Future<void> downloadReport(int modelId) async => httpClient
+          .download('/download/report?model_id=$modelId', await _getDownloadUrl('report-$modelId.zip'))
+          .then((value) {
+        if (value.statusCode == 200) {
+        } else if (value.statusCode == 404) {
+          SmartDialog.showToast(value.data['message']);
         } else {
-          SmartDialog.showToast(resp.body['message']);
+          SmartDialog.showToast(value.data['message']);
         }
+      }, onError: (e) {
+        SmartDialog.showToast(e.toString());
       });
 
 // 获取模型详情
@@ -338,11 +334,11 @@ class AuthedAPIProvider extends API {
 // 200：成功
 // 404：模型不存在
 
-  Future<ModelDetail?> getModelDetail(int modelId) => get('/model/getDetail?model_id=$modelId').then((value) {
-        if (value.statusCode == 200) {
-          return ModelDetail.fromJson(value.body['model_detail']);
+  Future<ModelDetail?> getModelDetail(int modelId) => httpClient.get('/model/getDetail?model_id=$modelId').then((resp) {
+        if (resp.statusCode == 200) {
+          return ModelDetail.fromJson(resp.data['model_detail']);
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(resp.data['message']);
           return null;
         }
       });
@@ -371,11 +367,11 @@ class AuthedAPIProvider extends API {
 // …
 // ]
 
-  Future<DataSetListResponse?> getDatasetList() => get('/dataset/getList').then((value) {
+  Future<DataSetListResponse?> getDatasetList() => httpClient.get('/dataset/getList').then((value) {
         if (value.statusCode == 200) {
-          return DataSetListResponse.fromJson(value.body);
+          return DataSetListResponse.fromJson(value.data);
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
           return null;
         }
       });
@@ -389,11 +385,11 @@ class AuthedAPIProvider extends API {
   // 1.	status/message：
   // 200：成功
   // 404：数据集不存在
-  Future<DataSetDetail?> getDatasetDetail(int id) => get('/dataset/getDetail?dataset_id=$id').then((value) {
+  Future<DataSetDetail?> getDatasetDetail(int id) => httpClient.get('/dataset/getDetail?dataset_id=$id').then((value) {
         if (value.statusCode == 200) {
-          return DataSetDetail.fromJson(value.body);
+          return DataSetDetail.fromJson(value.data);
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
           return null;
         }
       });
@@ -430,12 +426,13 @@ class AuthedAPIProvider extends API {
 // 备注：关于拆分比例，是否需要拆分成两个参数传递
 
   Future<(DataSet, DataSet)?> splitDataset(int datasetId, String ratio, String name1, String name2) =>
-      post('/dataset/split', {'dataset_id': datasetId, 'ratio': ratio, 'name1': name1, 'name2': name2}).then((value) {
+      httpClient.post('/dataset/split',
+          data: {'dataset_id': datasetId, 'ratio': ratio, 'name1': name1, 'name2': name2}).then((value) {
         if (value.statusCode == 200) {
-          final list = value.body['new_dataset'];
+          final list = value.data['new_dataset'];
           return (DataSet.fromJson(list[0]), DataSet.fromJson(list[1]));
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
           return null;
         }
       });
@@ -452,11 +449,12 @@ class AuthedAPIProvider extends API {
 // 200：成功删除
 // 404：数据集不存在
 
-  Future<void> deleteDataset(int datasetId) => post('/dataset/del', {'dataset_id': datasetId}).then((value) {
+  Future<void> deleteDataset(int datasetId) =>
+      httpClient.post('/dataset/del', data: {'dataset_id': datasetId}).then((value) {
         if (value.statusCode == 200) {
           SmartDialog.showToast('数据集已删除');
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
         }
       });
 
@@ -472,18 +470,15 @@ class AuthedAPIProvider extends API {
 // 200：下载成功
 // 404：数据集不存在
 
-  Future<void> downloadDataset(int datasetId) => get('/download/dataset/dataset_id=$datasetId').then((value) {
+  Future<void> downloadDataset(int datasetId) async => httpClient
+          .download('/download/dataset?dataset_id=$datasetId', await _getDownloadUrl('dataset-$datasetId.csv'))
+          .then((value) {
         if (value.statusCode == 200) {
-          final filename = 'dataset-$datasetId.csv';
-          final bytes = value.bodyBytes;
-          if (bytes == null) {
-            SmartDialog.showToast('无法获取下载内容');
-            return;
-          }
-          _download(filename, bytes);
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
         }
+      }, onError: (e) {
+        SmartDialog.showToast(e.toString());
       });
 
 // 数据集上传
@@ -514,14 +509,23 @@ class AuthedAPIProvider extends API {
 // ]
 // 备注：具体如何判断文件过大，以什么标准待定
 
-  Future<void> uploadDataset(String name, dynamic file, String filename) =>
-      post('/upload/dataset', FormData({'name': name, 'file': MultipartFile(file, filename: filename)})).then((value) {
+  Future<void> uploadDataset(String name, dynamic file, String filename) => httpClient
+          .post('/upload/dataset',
+              data: FormData.fromMap({
+                'name': name,
+                'file': switch (file) {
+                  String path => MultipartFile.fromFile(path, filename: filename),
+                  Uint8List bytes => MultipartFile.fromBytes(bytes, filename: filename),
+                  _ => throw 'file type not supported',
+                }
+              }))
+          .then((value) {
         if (value.statusCode == 200) {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
           storageProvider.forceGetDatasetList();
           Get.back();
         } else {
-          SmartDialog.showToast(value.body['message']);
+          SmartDialog.showToast(value.data['message']);
         }
       });
 
@@ -586,7 +590,8 @@ class AuthedAPIProvider extends API {
 // 备注：训练无法开始时返回内容仅包含status、code、message等，具体的错误会在code和message中给出。训练成功开始时持续返回JSON，每个JSON都包含上述内容（1、2、4、5）
 
   Future<Response> train(String modelName, int datasetId, String modelType, Map<String, dynamic> params) =>
-      post('/train', {'model_name': modelName, 'dataset_id': datasetId, 'model_type': modelType, 'params': params});
+      httpClient.post('/train',
+          data: {'model_name': modelName, 'dataset_id': datasetId, 'model_type': modelType, 'params': params});
 
 // 获取正在训练的模型
 // URL：/train/training
@@ -600,7 +605,7 @@ class AuthedAPIProvider extends API {
 // 2.	其他同“模型训练”
 // 备注：如果请求成功，则会持续返回训练信息（是否需要禁止重复请求？）
 
-  Future<Response> getTraining() => get('/train/training');
+  Future<Response> getTraining() => httpClient.get('/train/training');
 
 // 模型使用
 // URL：/predict
@@ -630,7 +635,7 @@ class AuthedAPIProvider extends API {
 // },
 // ]
   Future<Response> predict(int modelId, int datasetId) =>
-      post('/predict', {'model_id': modelId, 'dataset_id': datasetId});
+      httpClient.post('/predict', data: {'model_id': modelId, 'dataset_id': datasetId});
 
 // 预测结果下载
 // URL：/download/predict
@@ -644,17 +649,8 @@ class AuthedAPIProvider extends API {
 // 404：无预测结果可供下载
 // 备注：默认返回上一次的结果
 
-  Future<void> downloadPredict() => get('/download/predict').then((value) {
-        if (value.statusCode == 200) {
-          const filename = 'predict.csv';
-          final bytes = value.bodyBytes;
-          if (bytes == null) {
-            SmartDialog.showToast('无法获取下载内容');
-            return;
-          }
-          _download(filename, bytes);
-        } else {
-          SmartDialog.showToast(value.body['message']);
-        }
+  Future<void> downloadPredict() async =>
+      httpClient.download('/download/predict', await _getDownloadUrl('predict')).then((value) => null, onError: (e) {
+        SmartDialog.showToast(e.toString());
       });
 }

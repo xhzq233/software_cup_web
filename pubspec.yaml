@@ -18,6 +18,8 @@ dependencies:
   flutter_smart_dialog: ^4.9.3+1
   crypto: ^3.0.3
   boxy: ^2.0.9
+  dio: ^5.2.1+1
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:

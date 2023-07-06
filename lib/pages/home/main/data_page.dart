@@ -98,7 +98,7 @@ class _DataSetTableState extends State<_DataSetTable> {
   final selected = <DataSet>{};
   bool selectAble = false;
 
-  void _onTap(DataSet dataSet) {
+  void _getDetail(DataSet dataSet) {
     // detail
     authedAPI.getDatasetDetail(dataSet.id).then((value) {
       if (value == null) {
@@ -126,8 +126,6 @@ class _DataSetTableState extends State<_DataSetTable> {
       setState(() {});
     }
 
-    void onTap() => _onTap(dataSet);
-
     return DataRow(
       selected: !selectAble ? false : selected.contains(dataSet),
       cells: [
@@ -140,11 +138,19 @@ class _DataSetTableState extends State<_DataSetTable> {
         DataCell(Text(dataSet.labelState)),
         DataCell(Text(dataSet.source)),
         DataCell(
-            const Text(
-              '查看详情',
-              style: TextStyle(color: Colors.blue),
-            ),
-            onTap: onTap),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: () => _getDetail(dataSet),
+                child: const Text('查看详情'),
+              ),
+              ElevatedButton(
+                onPressed: () => authedAPI.downloadDataset(dataSet.id),
+                child: const Text('下载'),
+              ),
+            ],
+          ),
+        ),
       ],
       onSelectChanged: !selectAble ? null : onSelectChanged,
     );
@@ -228,7 +234,7 @@ class _DataSetTableState extends State<_DataSetTable> {
                 widget.dataSets.sort((a, b) => _sort(a.source, b.source));
               });
             }),
-        const DataColumn(label: Text('Actions')),
+        const DataColumn(label: Align(child: Text('Actions'))),
       ],
       rows: widget.dataSets.map(_buildRow).toList(),
     );
