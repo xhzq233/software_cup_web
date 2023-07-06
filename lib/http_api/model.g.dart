@@ -71,20 +71,20 @@ Map<String, dynamic> _$ModelDetailToJson(ModelDetail instance) =>
     };
 
 Report _$ReportFromJson(Map<String, dynamic> json) => Report(
-      datasetId: json['dataset_id'] as int,
+      modelId: json['model_id'] as int,
       precision: (json['precision'] as num).toDouble(),
       recall: (json['recall'] as num).toDouble(),
-      f1: (json['f1'] as num).toDouble(),
+      macroF1: (json['macro_f1'] as num).toDouble(),
       classRes: (json['class_res'] as List<dynamic>)
           .map((e) => ClassRes.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
 Map<String, dynamic> _$ReportToJson(Report instance) => <String, dynamic>{
-      'dataset_id': instance.datasetId,
+      'model_id': instance.modelId,
       'precision': instance.precision,
       'recall': instance.recall,
-      'f1': instance.f1,
+      'macro_f1': instance.macroF1,
       'class_res': instance.classRes,
     };
 

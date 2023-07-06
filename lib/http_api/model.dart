@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'model.g.dart';
@@ -140,24 +142,42 @@ class ModelDetail {
   Map<String, dynamic> toJson() => _$ModelDetailToJson(this);
 }
 
+// {
+//       "class_res": [
+//         {
+//           "f1": 0.89,
+//           "precision": 0.9,
+//           "recall": 0.9
+//         },
+//         {
+//           "f1": 0.89,
+//           "precision": 0.9,
+//           "recall": 0.9
+//         }
+//       ],
+//       "macro_f1": 0.89,
+//       "model_id": 10000,
+//       "precision": 0.9,
+//       "recall": 0.9
+//     }
 @JsonSerializable()
 class Report {
-  @JsonKey(name: 'dataset_id')
-  final int datasetId;
+  @JsonKey(name: 'model_id')
+  final int modelId;
   @JsonKey(name: 'precision')
   final double precision;
   @JsonKey(name: 'recall')
   final double recall;
-  @JsonKey(name: 'f1')
-  final double f1;
+  @JsonKey(name: 'macro_f1')
+  final double macroF1;
   @JsonKey(name: 'class_res')
   final List<ClassRes> classRes;
 
   Report({
-    required this.datasetId,
+    required this.modelId,
     required this.precision,
     required this.recall,
-    required this.f1,
+    required this.macroF1,
     required this.classRes,
   });
 
@@ -185,7 +205,6 @@ class ClassRes {
 
   Map<String, dynamic> toJson() => _$ClassResToJson(this);
 }
-
 
 // 1.	status/message：
 // 200：获取成功
@@ -301,4 +320,11 @@ class DataSetDetail {
   factory DataSetDetail.fromJson(Map<String, dynamic> json) => _$DataSetDetailFromJson(json);
 
   Map<String, dynamic> toJson() => _$DataSetDetailToJson(this);
+
+  @override
+  String toString() {
+    return codec.convert(toJson());
+  }
 }
+
+const codec = JsonEncoder.withIndent('  ');

@@ -173,7 +173,7 @@ class _DataSetTableState extends State<_DataSetTable> {
       Get.dialog(
         AlertDialog(
           title: Text(dataSet.name),
-          content: Text(value.toJson().toString()),
+          content: SingleChildScrollView(child: Text(value.toString())),
           actions: [
             TextButton(onPressed: () => Get.back(), child: const Text('关闭')),
           ],
