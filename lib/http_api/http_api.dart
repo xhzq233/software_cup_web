@@ -44,20 +44,22 @@ class CustomInterceptors extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     log('RESPONSE[${response.statusCode}] <= PATH: ${response.requestOptions.path} DATA: ${response.data}');
     SmartDialog.dismiss(status: SmartStatus.loading);
-    if (response.statusCode == 401) {
-      SmartDialog.showToast('请重新登录');
-      tokenManager.setToken(null);
-      Get.offAllNamed('/login');
-    }
     super.onResponse(response, handler);
   }
 
   @override
   Future onError(DioException err, ErrorInterceptorHandler handler) async {
     log('ERROR[${err.response?.statusCode}] <= PATH: ${err.requestOptions.path} DATA: ${err.response?.data}');
-    if (err.response != null) {
-      err.response?.statusCode = 200;
-      handler.resolve(err.response!);
+    final response = err.response;
+    if (response != null) {
+      if (response.statusCode == 401) {
+        SmartDialog.showToast('请重新登录');
+        tokenManager.setToken(null);
+        Get.offAllNamed('/login');
+        return;
+      }
+      response.statusCode = 200;
+      handler.resolve(response);
     } else {
       SmartDialog.showToast('网络错误');
       super.onError(err, handler);
