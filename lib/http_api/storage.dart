@@ -29,8 +29,8 @@ class StorageProvider extends GetxService {
   }
 
   void refresh() {
-    dataSetListResponse(null);
-    modelListResponse(null);
+    dataSetListResponse.value = null;
+    modelListResponse.value = null;
   }
 
 }
