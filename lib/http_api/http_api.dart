@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
@@ -26,10 +27,19 @@ Future<void> _download(String filename, String path) => fs
     )
     .then((dir) => SmartDialog.showToast('文件已保存至：$dir'), onError: (e) => SmartDialog.showToast(e.toString()));
 
+extension on RequestOptions {
+  String get dataDescription {
+    if (data is FormData) {
+      return (data as FormData).fields.map((e) => '${e.key}: ${e.value}').join(', ');
+    }
+    return data.toString();
+  }
+}
+
 class CustomInterceptors extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    log('REQUEST[${options.method}] => PATH: ${options.path} DATA: ${options.data}');
+    log('REQUEST[${options.method}] => PATH: ${options.path} DATA: ${options.dataDescription}');
     SmartDialog.dismiss(status: SmartStatus.loading, force: true);
     SmartDialog.showLoading();
     if (tokenManager.isAuthed) {
@@ -374,46 +384,82 @@ class AuthedAPIProvider extends API {
         }
       });
 
-// 数据集拆分
-// URL： /dataset/split
-// 请求类型：POST
-// 参数：
-// 1.	dataset_id：
-// 2.	ratio:<a:b>	//字符串
-// 3.	name1
-// 4.	name2
-// 请求头：
-// 1.	token
-// 响应内容：
-// 1.	status/message：
-// 200：成功拆分
-// 400：name1/name2名称过长或缺失，或比例不合法
-// 404：数据集不存在
-// 	2. new_dataset	//两个新的数据集信息
-// [
-// {
-// 				name:
-// 				id:
-// 				createTime:
-// line_num：
-// feature_num：
-// k_class：
-// label_state：
-// source：	//数据集来源，如果是拆分得到的则显示源数据集名称
-// },
-// {}
-// ]
-// 备注：关于拆分比例，是否需要拆分成两个参数传递
-
-  Future<(DataSet, DataSet)?> splitDataset(int datasetId, String ratio, String name1, String name2) =>
-      httpClient.post('/dataset/split',
-          data: {'dataset_id': datasetId, 'ratio': ratio, 'name1': name1, 'name2': name2}).then((value) {
+  // URL： /dataset/split
+  // 请求类型：POST
+  // 参数：
+  // 1.	dataset_id：
+  // 2.	name1
+  // 3.	name2
+  // 4.	num1	//按条数拆分，前端需要验证（最好是填写一个自动计算另一个）
+  // 5.	num2
+  // 请求头：
+  // 1.	token
+  // 响应内容：
+  // 1.	status/message：
+  // 200：成功拆分
+  // 400：name1/name2名称过长或缺失，或num1、num2不合法
+  // 404：数据集不存在
+  // 	2. new_dataset	//两个新的数据集信息
+  // [
+  // {
+  // 				name:
+  // 				id:
+  // 				createTime:
+  // line_num：
+  // feature_num：
+  // k_class：
+  // label_state：
+  // source：	//数据集来源，如果是拆分得到的则显示源数据集名称
+  // },
+  // {}
+  // ]
+  Future<(DataSet, DataSet)?> splitDataset(int datasetId, String name1, String name2, int num1, int num2) =>
+      httpClient.post('/dataset/split', data: {
+        'dataset_id': datasetId,
+        'name1': name1,
+        'name2': name2,
+        'num1': num1,
+        'num2': num2,
+      }).then((value) {
         if (value.statusCode == 200) {
-          final list = value.data['new_dataset'];
-          return (DataSet.fromJson(list[0]), DataSet.fromJson(list[1]));
+          return (DataSet.fromJson(value.data['new_dataset'][0]), DataSet.fromJson(value.data['new_dataset'][1]));
         } else {
           SmartDialog.showToast(value.data['message']);
           return null;
+        }
+      });
+
+  // URL： /dataset/merge
+  // 请求类型：POST
+  // 参数：
+  // 1.	name:
+  // 2.	dataset_id:	//用户勾选，可合并为字符串，中间用空格隔开
+  // 请求头：token
+  // 响应内容：
+  // 1.	status/message：
+  // 200：成功合并
+  // 400：name过长或缺失，
+  // 404：dataset_id中包含不存在的数据集
+  // 403：合并后的数据集大小超过限制（待定）
+  // 2.	new_dataset:
+  // {
+  // name:
+  // id:
+  // createTime:
+  // line_num：
+  // feature_num：
+  // k_class：
+  // label_state：
+  // source：
+  // }
+  Future<bool> mergeDataset(String name, Iterable<int> datasetIds) =>
+      httpClient.post('/dataset/merge', data: {'name': name, 'dataset_id': datasetIds.join(' ')}).then((value) {
+        if (value.statusCode == 200) {
+          SmartDialog.showToast('数据集已合并');
+          return true;
+        } else {
+          SmartDialog.showToast(value.data['message']);
+          return false;
         }
       });
 
@@ -481,12 +527,12 @@ class AuthedAPIProvider extends API {
 // ]
 // 备注：具体如何判断文件过大，以什么标准待定
 
-  Future<void> uploadDataset(String name, dynamic file, String filename) => httpClient
+  Future<void> uploadDataset(String name, dynamic file, String filename) async => httpClient
           .post('/upload/dataset',
               data: FormData.fromMap({
                 'name': name,
                 'file': switch (file) {
-                  String path => MultipartFile.fromFile(path, filename: filename),
+                  String path => await MultipartFile.fromFile(path, filename: filename),
                   Uint8List bytes => MultipartFile.fromBytes(bytes, filename: filename),
                   _ => throw 'file type not supported',
                 }

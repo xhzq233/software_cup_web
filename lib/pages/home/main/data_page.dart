@@ -1,3 +1,4 @@
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/http_api/model.dart';
@@ -5,6 +6,12 @@ import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/pages/home/main/choose_data_set.dart';
 import 'package:software_cup_web/pages/home/main/main_index.dart';
 import 'package:flutter/material.dart';
+import 'package:software_cup_web/pages/home/main/split_data_set.dart';
+
+const width4 = SizedBox(width: 4);
+const width8 = SizedBox(width: 8);
+const width16 = SizedBox(width: 16);
+const width32 = SizedBox(width: 32);
 
 class DataPage extends StatefulWidget {
   const DataPage({super.key});
@@ -15,15 +22,64 @@ class DataPage extends StatefulWidget {
 
 class _DataPageState extends State<DataPage> {
   final searchString = ''.obs;
+  final isOnMerging = false.obs;
+  final Set<DataSet> selected = {};
 
   Widget _buildBody() {
     final list = storageProvider.dataSetListResponse.value;
+    final isOnMerging = this.isOnMerging.value;
     if (list == null) {
       return const SizedBox();
     }
     final key = searchString.value;
     final copied = list.datasetList.where((element) => element.name.contains(key)).toList();
-    return _DataSetTable(dataSets: copied);
+    return _DataSetTable(dataSets: copied, selectAble: isOnMerging, selected: selected);
+  }
+
+  void _merge() async {
+    if (selected.length < 2) {
+      SmartDialog.showToast('请至少选择两个数据集');
+      return;
+    }
+
+    final controller = TextEditingController();
+
+    // input data name
+    final res = await Get.dialog(
+      AlertDialog(
+        title: const Text('输入数据集名称'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: '数据集名称'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back(result: false);
+            },
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back(result: true);
+            },
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+    if (res == null || res == false) {
+      return;
+    }
+    final name = controller.text.isEmpty ? '未命名数据集' : controller.text;
+
+    authedAPI.mergeDataset(name, selected.map((e) => e.id)).then((trueOrFalse) {
+      if (trueOrFalse) {
+        storageProvider.dataSetListResponse.refresh();
+        selected.clear();
+        isOnMerging.value = false;
+      }
+    });
   }
 
   @override
@@ -39,19 +95,29 @@ class _DataPageState extends State<DataPage> {
           children: [
             Text(MainPageIndex.data.pageTitle, style: textTheme.headlineLarge),
             const SizedBox(width: 8),
-            Text(
-              '上传数据集并划分训练集测试集',
-              style: textTheme.titleLarge,
-            )
+            Text('上传数据集并划分训练集测试集', style: textTheme.titleLarge)
           ],
         ),
         const SizedBox(height: 16),
         Row(
           children: [
             ElevatedButton(onPressed: () => Get.dialog(const ChooseDatasetPopUp()), child: const Text('新建数据集')),
-            const Spacer(
-              flex: 3,
+            width16,
+            ElevatedButton(
+              onPressed: () => isOnMerging.value = !isOnMerging.value,
+              child: Obx(() => Text(!isOnMerging.value ? '合并数据集' : '取消合并')),
             ),
+            width16,
+            Obx(
+              () => Visibility(
+                visible: isOnMerging.value == true,
+                child: ElevatedButton(
+                  onPressed: _merge,
+                  child: const Text('合并'),
+                ),
+              ),
+            ),
+            const Spacer(flex: 3),
             Expanded(
               child: SizedBox(
                 height: 44,
@@ -85,8 +151,10 @@ class _DataPageState extends State<DataPage> {
 
 class _DataSetTable extends StatefulWidget {
   final List<DataSet> dataSets;
+  final bool selectAble;
+  final Set<DataSet> selected;
 
-  const _DataSetTable({required this.dataSets});
+  const _DataSetTable({required this.dataSets, this.selectAble = false, this.selected = const {}});
 
   @override
   _DataSetTableState createState() => _DataSetTableState();
@@ -95,8 +163,6 @@ class _DataSetTable extends StatefulWidget {
 class _DataSetTableState extends State<_DataSetTable> {
   bool _sortAscending = true;
   int _sortColumnIndex = 1;
-  final selected = <DataSet>{};
-  bool selectAble = false;
 
   void _getDetail(DataSet dataSet) {
     // detail
@@ -119,15 +185,15 @@ class _DataSetTableState extends State<_DataSetTable> {
   DataRow _buildRow(DataSet dataSet) {
     void onSelectChanged(bool? value) {
       if (value == true) {
-        selected.add(dataSet);
+        widget.selected.add(dataSet);
       } else {
-        selected.remove(dataSet);
+        widget.selected.remove(dataSet);
       }
       setState(() {});
     }
 
     return DataRow(
-      selected: !selectAble ? false : selected.contains(dataSet),
+      selected: !widget.selectAble ? false : widget.selected.contains(dataSet),
       cells: [
         DataCell(Text(dataSet.name)),
         DataCell(Text(dataSet.id.toString())),
@@ -139,20 +205,32 @@ class _DataSetTableState extends State<_DataSetTable> {
         DataCell(Text(dataSet.source)),
         DataCell(
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton(
                 onPressed: () => _getDetail(dataSet),
                 child: const Text('查看详情'),
               ),
+              width4,
               ElevatedButton(
                 onPressed: () => authedAPI.downloadDataset(dataSet.id),
                 child: const Text('下载'),
+              ),
+              width4,
+              ElevatedButton(
+                onPressed: () => authedAPI.deleteDataset(dataSet.id),
+                child: const Text('删除'),
+              ),
+              width4,
+              ElevatedButton(
+                onPressed: () => Get.dialog(SplitDataSetPopUp(dataSet: dataSet)),
+                child: const Text('拆分'),
               ),
             ],
           ),
         ),
       ],
-      onSelectChanged: !selectAble ? null : onSelectChanged,
+      onSelectChanged: !widget.selectAble ? null : onSelectChanged,
     );
   }
 
@@ -234,7 +312,7 @@ class _DataSetTableState extends State<_DataSetTable> {
                 widget.dataSets.sort((a, b) => _sort(a.source, b.source));
               });
             }),
-        const DataColumn(label: Align(child: Text('Actions'))),
+        const DataColumn(label: SizedBox(width: 360, child: Align(child: Text('Actions')))),
       ],
       rows: widget.dataSets.map(_buildRow).toList(),
     );
