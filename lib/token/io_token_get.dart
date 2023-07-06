@@ -7,6 +7,9 @@ class CookieManager with TokenManagerMixin {
     super.setToken(token);
     final file = File('token');
     if (token == null) {
+      if (!file.existsSync()) {
+        return;
+      }
       file.delete();
       return;
     }

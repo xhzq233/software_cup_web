@@ -3,30 +3,28 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
-import 'package:path_provider/path_provider.dart';
 import 'package:software_cup_web/http_api/model.dart';
 import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/token/token.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:path/path.dart';
+import 'package:file_saver/file_saver.dart';
+
+final fs = FileSaver.instance;
 
 const baseUrl = kReleaseMode ? 'http://150.158.91.154:80' : 'http://150.158.91.154:80';
 final unAuthAPI = Get.put(UnAuthAPIProvider());
 final authedAPI = Get.put(AuthedAPIProvider());
 
-Future<String> _getDownloadUrl(String filename) async {
-  final dir = await getDownloadsDirectory();
-  log('download dir: $dir, filename: $filename');
-  final String path;
-  if (dir == null) {
-    path = join((await getTemporaryDirectory()).path, filename);
-  } else {
-    path = join(dir.path, filename);
-  }
-  SmartDialog.showToast('文件已保存至：$path');
-  return path;
-}
+Future<void> _download(String filename, String path) => fs
+    .saveFile(
+      name: filename,
+      link: LinkDetails(
+        link: baseUrl + path,
+        headers: {'token': tokenManager.token ?? ''},
+      ),
+    )
+    .then((dir) => SmartDialog.showToast('文件已保存至：$dir'), onError: (e) => SmartDialog.showToast(e.toString()));
 
 class CustomInterceptors extends Interceptor {
   @override
@@ -51,14 +49,14 @@ class CustomInterceptors extends Interceptor {
   Future onError(DioException err, ErrorInterceptorHandler handler) async {
     log('ERROR[${err.response?.statusCode}] <= PATH: ${err.requestOptions.path} DATA: ${err.response?.data}');
     final response = err.response;
+    SmartDialog.dismiss(status: SmartStatus.loading);
     if (response != null) {
-      if (response.statusCode == 401) {
-        SmartDialog.showToast('请重新登录');
+      if (response.statusCode == 401 && tokenManager.isAuthed) {
+        SmartDialog.showToast('登录过期，请重新登录');
         tokenManager.setToken(null);
         Get.offAllNamed('/login');
         return;
       }
-      response.statusCode = 200;
       handler.resolve(response);
     } else {
       SmartDialog.showToast('网络错误');
@@ -275,7 +273,7 @@ class AuthedAPIProvider extends API {
       });
 
 // 下载模型
-// URL：/download/model/model_id=?
+// URL：/download/model?model_id=?
 // 请求类型：GET
 // 参数：
 // 1.	model_id：
@@ -289,19 +287,10 @@ class AuthedAPIProvider extends API {
 // 1.	下载类api如果成功就直接返回文件，下同
 // 2.	默认流式下载（也可以选择以附件的形式，不知道有什么区别）
 // 3.	是否需要限制用户下载数量（返回403）
-  Future<void> downloadModel(int modelId) async => httpClient
-          .download('/download/model?model_id=$modelId', await _getDownloadUrl('model-$modelId.zip'))
-          .then((value) {
-        if (value.statusCode == 200) {
-        } else {
-          SmartDialog.showToast(value.data['message']);
-        }
-      }, onError: (e) {
-        SmartDialog.showToast(e.toString());
-      });
+  Future<void> downloadModel(int modelId) => _download('model-$modelId.zip', '/download/model?model_id=$modelId');
 
 // 下载模型报告
-// URL：/download/report/model_id=?
+// URL：/download/report?model_id=?
 // 请求类型：GET
 // 参数：
 // 1.	model_id：
@@ -311,18 +300,7 @@ class AuthedAPIProvider extends API {
 // 1.	status/message：
 // 200：下载成功
 // 404：模型不存在
-  Future<void> downloadReport(int modelId) async => httpClient
-          .download('/download/report?model_id=$modelId', await _getDownloadUrl('report-$modelId.zip'))
-          .then((value) {
-        if (value.statusCode == 200) {
-        } else if (value.statusCode == 404) {
-          SmartDialog.showToast(value.data['message']);
-        } else {
-          SmartDialog.showToast(value.data['message']);
-        }
-      }, onError: (e) {
-        SmartDialog.showToast(e.toString());
-      });
+  Future<void> downloadReport(int modelId) => _download('report-$modelId.zip', '/download/report?model_id=$modelId');
 
 // 获取模型详情
 // URL：/model/getDetail
@@ -472,16 +450,8 @@ class AuthedAPIProvider extends API {
 // 200：下载成功
 // 404：数据集不存在
 
-  Future<void> downloadDataset(int datasetId) async => httpClient
-          .download('/download/dataset?dataset_id=$datasetId', await _getDownloadUrl('dataset-$datasetId.csv'))
-          .then((value) {
-        if (value.statusCode == 200) {
-        } else {
-          SmartDialog.showToast(value.data['message']);
-        }
-      }, onError: (e) {
-        SmartDialog.showToast(e.toString());
-      });
+  Future<void> downloadDataset(int datasetId) =>
+      _download('dataset-$datasetId.csv', '/download/dataset?dataset_id=$datasetId');
 
 // 数据集上传
 // URL：/upload/dataset/
@@ -651,8 +621,5 @@ class AuthedAPIProvider extends API {
 // 404：无预测结果可供下载
 // 备注：默认返回上一次的结果
 
-  Future<void> downloadPredict() async =>
-      httpClient.download('/download/predict', await _getDownloadUrl('predict')).then((value) => null, onError: (e) {
-        SmartDialog.showToast(e.toString());
-      });
+  Future<void> downloadPredict() => _download('predict', '/download/predict');
 }
