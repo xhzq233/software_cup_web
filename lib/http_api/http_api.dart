@@ -422,6 +422,7 @@ class AuthedAPIProvider extends API {
         'num2': num2,
       }).then((value) {
         if (value.statusCode == 200) {
+          SmartDialog.showToast(value.data['message']);
           return (DataSet.fromJson(value.data['new_dataset'][0]), DataSet.fromJson(value.data['new_dataset'][1]));
         } else {
           SmartDialog.showToast(value.data['message']);
@@ -479,6 +480,7 @@ class AuthedAPIProvider extends API {
       httpClient.post('/dataset/del', data: {'dataset_id': datasetId}).then((value) {
         if (value.statusCode == 200) {
           SmartDialog.showToast('数据集已删除');
+          storageProvider.forceGetDatasetList();
         } else {
           SmartDialog.showToast(value.data['message']);
         }

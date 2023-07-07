@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:software_cup_web/http_api/model.dart';
 import '../../../http_api/http_api.dart';
+import '../../../http_api/storage.dart';
 
 class SplitDataSetPopUp extends StatefulWidget {
   const SplitDataSetPopUp({super.key, required this.dataSet});
@@ -20,8 +21,13 @@ class _SplitDataSetPopUpState extends State<SplitDataSetPopUp> {
   void _submit() {
     final int firstQty = (widget.dataSet.lineNum * ratio).toInt();
     final int secondQty = widget.dataSet.lineNum - firstQty;
-    authedAPI.splitDataset(widget.dataSet.id, name1.text, name2.text, firstQty, secondQty);
-    Get.back(result: true);
+    authedAPI.splitDataset(widget.dataSet.id, name1.text, name2.text, firstQty, secondQty).then((value) {
+      if (value != null) {
+        storageProvider.forceGetDatasetList();
+        Get.back(result: true);
+      }
+    });
+
   }
 
   @override
