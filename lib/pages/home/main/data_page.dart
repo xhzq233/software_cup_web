@@ -54,15 +54,11 @@ class _DataPageState extends State<DataPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Get.back(result: false);
-            },
+            onPressed: () => Get.back(result: false),
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () {
-              Get.back(result: true);
-            },
+            onPressed: () => Get.back(result: true),
             child: const Text('确定'),
           ),
         ],
@@ -75,7 +71,7 @@ class _DataPageState extends State<DataPage> {
 
     authedAPI.mergeDataset(name, selected.map((e) => e.id)).then((trueOrFalse) {
       if (trueOrFalse) {
-        storageProvider.dataSetListResponse.refresh();
+        storageProvider.forceGetDatasetList();
         selected.clear();
         isOnMerging.value = false;
       }
@@ -117,18 +113,16 @@ class _DataPageState extends State<DataPage> {
                 ),
               ),
             ),
-            const Spacer(flex: 3),
-            Expanded(
-              child: SizedBox(
-                height: 44,
-                child: TextField(
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                    hintText: '搜索数据集',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: searchString.call,
+            const Spacer(),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 168, minWidth: 0, maxHeight: 44, minHeight: 44),
+              child: TextField(
+                decoration: const InputDecoration(
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                  hintText: '搜索数据集',
+                  border: OutlineInputBorder(),
                 ),
+                onChanged: searchString.call,
               ),
             ),
           ],
@@ -138,10 +132,7 @@ class _DataPageState extends State<DataPage> {
             margin: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(border: Border.all(width: 1.5), borderRadius: BorderRadius.circular(8)),
             width: double.infinity,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Obx(_buildBody),
-            ),
+            child: SingleChildScrollView(child: FittedBox(fit: BoxFit.fitWidth,alignment: Alignment.topCenter, child: Obx(_buildBody))),
           ),
         )
       ],
@@ -239,6 +230,8 @@ class _DataSetTableState extends State<_DataSetTable> {
     return DataTable(
       sortAscending: _sortAscending,
       sortColumnIndex: _sortColumnIndex,
+      columnSpacing: 24,
+      horizontalMargin: 16,
       columns: [
         DataColumn(
             label: const Text('Name'),
@@ -312,7 +305,7 @@ class _DataSetTableState extends State<_DataSetTable> {
                 widget.dataSets.sort((a, b) => _sort(a.source, b.source));
               });
             }),
-        const DataColumn(label: SizedBox(width: 360, child: Align(child: Text('Actions')))),
+        const DataColumn(label: SizedBox(width: 340, child: Align(child: Text('Actions')))),
       ],
       rows: widget.dataSets.map(_buildRow).toList(),
     );
