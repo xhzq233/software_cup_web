@@ -35,11 +35,11 @@ enum HomePageIndex {
   Widget get page {
     switch (this) {
       case HomePageIndex.description:
-        return const DescriptionPage();
+        return const DescriptionPage(key: ValueKey('DescriptionPage'));
       case HomePageIndex.main:
-        return const MainPage();
+        return const MainPage(key: ValueKey('MainPage'));
       case HomePageIndex.doc:
-        return const DocPage();
+        return const DocPage(key: ValueKey('DocPage'));
     }
   }
 }
@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             ConstrainedBox(constraints: const BoxConstraints(maxHeight: kTabBarHeight), child: _buildTabBar()),
-            Expanded(child: TabBarView(children: HomePageIndex.values.map((e) => e.page).toList())),
+            Expanded(child: TabBarView(children: HomePageIndex.values.map((e) => e.page).toList(growable: false))),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:boxy/flex.dart';
 import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/pages/home/main/main_index.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,6 @@ class _MainPageState extends State<MainPage> {
 
   Widget getTabs() {
     final res = <Widget>[];
-    final tabBatTextTheme = Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600);
     final curIndex = index.value;
     for (final tab in MainPageIndex.values) {
       final isSelected = tab == curIndex;
@@ -46,21 +46,24 @@ class _MainPageState extends State<MainPage> {
           color: isSelected ? Colors.blue : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(tab.pageTitle, style: tabBatTextTheme),
+        child: Text(tab.pageTitle),
       );
 
-      content = GestureDetector(
-        onTap: () => index(tab),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: content,
+      content = Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GestureDetector(
+          onTap: () => index(tab),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: content,
+          ),
         ),
       );
 
       res.add(KeyedSubtree(key: ValueKey(tab), child: content));
     }
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisSize: MainAxisSize.min,
       children: res,
     );
   }
@@ -68,14 +71,18 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.max,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30),
-          child: Column(
+          padding: const EdgeInsets.only(left: 8, right: 8),
+          child: BoxyColumn(
             children: [
-              const SizedBox(height: 64),
-              Text('总览', style: Theme.of(context).textTheme.titleLarge),
-              Expanded(child: Obx(getTabs)),
+              const SizedBox(height: 16),
+              const Align(child: Text('总览')),
+              const SizedBox(height: 8),
+              const SizedBox(height: 1, child: ColoredBox(color: Colors.grey)),
+              Dominant(child: Obx(getTabs)),
+              const Spacer(),
             ],
           ),
         ),
