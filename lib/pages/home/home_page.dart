@@ -9,6 +9,39 @@ import 'package:get/get.dart';
 
 const kTabBarHeight = 46.0;
 
+class KeepAliveWrapper extends StatefulWidget {
+  const KeepAliveWrapper({
+    Key? key,
+    this.keepAlive = true,
+    required this.child,
+  }) : super(key: key);
+  final bool keepAlive;
+  final Widget child;
+
+  @override
+  State<KeepAliveWrapper> createState() => _KeepAliveWrapperState();
+}
+
+class _KeepAliveWrapperState extends State<KeepAliveWrapper> with AutomaticKeepAliveClientMixin {
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
+  }
+
+  @override
+  void didUpdateWidget(covariant KeepAliveWrapper oldWidget) {
+    if (oldWidget.keepAlive != widget.keepAlive) {
+      // keepAlive 状态需要更新，实现在 AutomaticKeepAliveClientMixin 中
+      updateKeepAlive();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  bool get wantKeepAlive => widget.keepAlive;
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -44,9 +77,10 @@ enum HomePageIndex {
   }
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   final index = HomePageIndex.description.obs;
   final _username = Rx<String?>(null);
+  late final _tabBarController = TabController(length: HomePageIndex.values.length, vsync: this);
 
   @override
   void initState() {
@@ -56,6 +90,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildTabBar() {
     final tabBar = TabBar(
+      controller: _tabBarController,
       tabs: HomePageIndex.values.map((e) => Tab(text: e.name)).toList(),
       onTap: (index) => this.index(HomePageIndex.values[index]),
     );
@@ -110,15 +145,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: DefaultTabController(
-        length: HomePageIndex.values.length,
-        child: Column(
-          children: [
-            ConstrainedBox(constraints: const BoxConstraints(maxHeight: kTabBarHeight), child: _buildTabBar()),
-            Expanded(child: TabBarView(children: HomePageIndex.values.map((e) => e.page).toList(growable: false))),
-          ],
-        ),
+    return Material(
+      child: Column(
+        children: [
+          ConstrainedBox(constraints: const BoxConstraints(maxHeight: kTabBarHeight), child: _buildTabBar()),
+          Expanded(
+            child: TabBarView(
+                controller: _tabBarController,
+                children: HomePageIndex.values.map((e) => KeepAliveWrapper(child: e.page)).toList(growable: false)),
+          ),
+        ],
       ),
     );
   }
