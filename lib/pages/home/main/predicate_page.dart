@@ -1,23 +1,24 @@
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:software_cup_web/http_api/http_api.dart';
-import 'package:software_cup_web/http_api/model.dart';
-import 'package:software_cup_web/http_api/storage.dart';
-import 'package:software_cup_web/pages/home/main/choose_data_set.dart';
 import 'package:software_cup_web/pages/home/main/main_index.dart';
 import 'package:flutter/material.dart';
 import 'package:software_cup_web/pages/home/main/table.dart';
 
-const _kIndex = MainPageIndex.data;
+import '../../../http_api/http_api.dart';
+import '../../../http_api/model.dart';
+import '../../../http_api/storage.dart';
+import 'choose_data_set.dart';
 
-class DataPage extends StatefulWidget {
-  const DataPage({super.key});
+const _kIndex = MainPageIndex.predicate;
+
+class PredicatePage extends StatefulWidget {
+  const PredicatePage({super.key});
 
   @override
-  State<DataPage> createState() => _DataPageState();
+  State<PredicatePage> createState() => _PredicatePageState();
 }
 
-class _DataPageState extends State<DataPage> {
+class _PredicatePageState extends State<PredicatePage> {
   final searchString = ''.obs;
   final isOnMerging = false.obs;
   final Set<DataSet> selected = {};
@@ -25,7 +26,7 @@ class _DataPageState extends State<DataPage> {
   Widget _buildBody() {
     final list = storageProvider.dataSetListResponse.value;
     final isOnMerging = this.isOnMerging.value;
-    if (list == null || list.datasetList.isEmpty) {
+    if (list == null) {
       return const SizedBox();
     }
     final key = searchString.value;

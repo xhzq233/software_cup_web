@@ -45,7 +45,6 @@ Map<String, dynamic> _$ModelListResponseToJson(ModelListResponse instance) =>
     };
 
 ModelDetail _$ModelDetailFromJson(Map<String, dynamic> json) => ModelDetail(
-      status: json['status'] as int,
       message: json['message'] as String,
       params: json['params'] as Map<String, dynamic>,
       kClass: json['k_class'] as int,
@@ -53,14 +52,13 @@ ModelDetail _$ModelDetailFromJson(Map<String, dynamic> json) => ModelDetail(
           (json['feature'] as List<dynamic>).map((e) => e as String).toList(),
       reportNum: json['report_num'] as int,
       report: (json['report'] as List<dynamic>)
-          .map((e) => Report.fromJson(e as Map<String, dynamic>))
+          .map((e) => ModelReport.fromJson(e as Map<String, dynamic>))
           .toList(),
       remark: json['remark'] as String,
     );
 
 Map<String, dynamic> _$ModelDetailToJson(ModelDetail instance) =>
     <String, dynamic>{
-      'status': instance.status,
       'message': instance.message,
       'params': instance.params,
       'k_class': instance.kClass,
@@ -70,7 +68,8 @@ Map<String, dynamic> _$ModelDetailToJson(ModelDetail instance) =>
       'remark': instance.remark,
     };
 
-Report _$ReportFromJson(Map<String, dynamic> json) => Report(
+DataSetReport _$DataSetReportFromJson(Map<String, dynamic> json) =>
+    DataSetReport(
       modelId: json['model_id'] as int,
       precision: (json['precision'] as num).toDouble(),
       recall: (json['recall'] as num).toDouble(),
@@ -80,8 +79,28 @@ Report _$ReportFromJson(Map<String, dynamic> json) => Report(
           .toList(),
     );
 
-Map<String, dynamic> _$ReportToJson(Report instance) => <String, dynamic>{
+Map<String, dynamic> _$DataSetReportToJson(DataSetReport instance) =>
+    <String, dynamic>{
       'model_id': instance.modelId,
+      'precision': instance.precision,
+      'recall': instance.recall,
+      'macro_f1': instance.macroF1,
+      'class_res': instance.classRes,
+    };
+
+ModelReport _$ModelReportFromJson(Map<String, dynamic> json) => ModelReport(
+      datasetId: json['dataset_id'] as int,
+      precision: (json['precision'] as num).toDouble(),
+      recall: (json['recall'] as num).toDouble(),
+      macroF1: (json['macro_f1'] as num).toDouble(),
+      classRes: (json['class_res'] as List<dynamic>)
+          .map((e) => ClassRes.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$ModelReportToJson(ModelReport instance) =>
+    <String, dynamic>{
+      'dataset_id': instance.datasetId,
       'precision': instance.precision,
       'recall': instance.recall,
       'macro_f1': instance.macroF1,
@@ -145,7 +164,7 @@ DataSetDetail _$DataSetDetailFromJson(Map<String, dynamic> json) =>
       kClass: json['k_class'] as int,
       reportNum: json['report_num'] as int,
       report: (json['report'] as List<dynamic>)
-          .map((e) => Report.fromJson(e as Map<String, dynamic>))
+          .map((e) => DataSetReport.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

@@ -240,6 +240,7 @@ class AuthedAPIProvider extends API {
 
   Future<void> deleteModel(int modelId) => httpClient.post('/model/del', data: {'model_id': modelId}).then((value) {
         if (value.statusCode == 200) {
+          storageProvider.forceGetModelList();
           SmartDialog.showToast(value.data['message']);
         } else if (value.statusCode == 403) {
           SmartDialog.showToast(value.data['message']);
@@ -296,7 +297,7 @@ class AuthedAPIProvider extends API {
 // 1.	下载类api如果成功就直接返回文件，下同
 // 2.	默认流式下载（也可以选择以附件的形式，不知道有什么区别）
 // 3.	是否需要限制用户下载数量（返回403）
-  Future<void> downloadModel(int modelId) => _download('model-$modelId.zip', '/download/model?model_id=$modelId');
+  Future<void> downloadModel(int modelId) => _download('model-$modelId.pkl', '/download/model?model_id=$modelId');
 
 // 下载模型报告
 // URL：/download/report?model_id=?
@@ -325,7 +326,7 @@ class AuthedAPIProvider extends API {
 
   Future<ModelDetail?> getModelDetail(int modelId) => httpClient.get('/model/getDetail?model_id=$modelId').then((resp) {
         if (resp.statusCode == 200) {
-          return ModelDetail.fromJson(resp.data['model_detail']);
+          return ModelDetail.fromJson(resp.data);
         } else {
           SmartDialog.showToast(resp.data['message']);
           return null;

@@ -1,50 +1,74 @@
+import 'package:get/get.dart';
+import 'package:software_cup_web/http_api/model.dart';
+import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/pages/home/main/main_index.dart';
 import 'package:flutter/material.dart';
+import 'package:software_cup_web/pages/home/main/table.dart';
 
-class ModelPage extends StatelessWidget {
+const _kIndex = MainPageIndex.model;
+
+class ModelPage extends StatefulWidget {
   const ModelPage({super.key});
+
+  @override
+  State<ModelPage> createState() => _ModelPageState();
+}
+
+class _ModelPageState extends State<ModelPage> {
+  final searchString = ''.obs;
+  final Set<DataSet> selected = {};
+
+  Widget _buildBody() {
+    final list = storageProvider.modelListResponse.value;
+    if (list == null || list.modelList.isEmpty) {
+      return const SizedBox();
+    }
+    final key = searchString.value;
+    final copied = list.modelList.where((element) => element.name.contains(key)).toList();
+    return SCTable(data: copied, selectAble: false, selected: selected);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(MainPageIndex.model.pageTitle, style: textTheme.headlineLarge),
-            const SizedBox(width: 8),
-            Text(
-              '管理模型，查看模型属性，性能',
-              style: textTheme.titleLarge,
-            )
+            Text(_kIndex.pageTitle, style: textTheme.headlineLarge),
+            width16,
+            Text(_kIndex.description, style: textTheme.titleLarge)
           ],
         ),
-        const SizedBox(height: 16),
+        width16,
         Row(
           children: [
-            Text(
-              '我的模型(0)',
-              style: textTheme.titleLarge,
-            ),
-            const Spacer(
-              flex: 3,
-            ),
-            const Expanded(
-              child: SizedBox(
-                height: 44,
-                child: TextField(
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                    hintText: '输入模型名称',
-                    border: OutlineInputBorder(),
-                  ),
+            const Spacer(),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 168, minWidth: 0, maxHeight: 44, minHeight: 44),
+              child: TextField(
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  hintText: _kIndex.searchLabel,
+                  border: const OutlineInputBorder(),
                 ),
+                onChanged: searchString.call,
               ),
             ),
           ],
+        ),
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(border: Border.all(width: 1.5), borderRadius: BorderRadius.circular(8)),
+            width: double.infinity,
+            child: SingleChildScrollView(
+                child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: Obx(_buildBody))),
+          ),
         )
       ],
     );

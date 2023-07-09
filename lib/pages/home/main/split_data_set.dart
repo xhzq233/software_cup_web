@@ -27,7 +27,6 @@ class _SplitDataSetPopUpState extends State<SplitDataSetPopUp> {
         Get.back(result: true);
       }
     });
-
   }
 
   @override
@@ -62,7 +61,11 @@ class _SplitDataSetPopUpState extends State<SplitDataSetPopUp> {
               const Text('比例'),
               const SizedBox(width: 16),
               Expanded(
-                child: Slider(value: ratio, onChanged: (value) => setState(() => ratio = value)),
+                child: Slider(
+                  value: ratio,
+                  onChanged: (value) => setState(() => ratio = value),
+                  label: '$ratio',
+                ),
               ),
               SizedBox(width: 50, child: Align(child: Text('${(ratio * 100).toInt()}%'))),
             ],

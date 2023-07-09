@@ -50,7 +50,6 @@ class Model {
   Map<String, dynamic> toJson() => _$ModelToJson(this);
 }
 
-// 1.	status/message：
 // 200：获取成功
 // 2.	model_num:
 // 3.	model_list:
@@ -74,7 +73,6 @@ class ModelListResponse {
   Map<String, dynamic> toJson() => _$ModelListResponseToJson(this);
 }
 
-// 1.	status/message：
 // 200：成功
 // 404：模型不存在
 // 2.  params: // 训练时设定的参数
@@ -109,8 +107,6 @@ class ModelListResponse {
 // 备注：模型详情页面主要显示三个模块：（1）params（2）模型的report列表（3）remark
 @JsonSerializable()
 class ModelDetail {
-  @JsonKey(name: 'status')
-  final int status;
   @JsonKey(name: 'message')
   final String message;
   @JsonKey(name: 'params')
@@ -122,12 +118,11 @@ class ModelDetail {
   @JsonKey(name: 'report_num')
   final int reportNum;
   @JsonKey(name: 'report')
-  final List<Report> report;
+  final List<ModelReport> report;
   @JsonKey(name: 'remark')
   final String remark;
 
   ModelDetail({
-    required this.status,
     required this.message,
     required this.params,
     required this.kClass,
@@ -140,6 +135,11 @@ class ModelDetail {
   factory ModelDetail.fromJson(Map<String, dynamic> json) => _$ModelDetailFromJson(json);
 
   Map<String, dynamic> toJson() => _$ModelDetailToJson(this);
+
+  @override
+  String toString() {
+    return codec.convert(toJson());
+  }
 }
 
 // {
@@ -161,7 +161,7 @@ class ModelDetail {
 //       "recall": 0.9
 //     }
 @JsonSerializable()
-class Report {
+class DataSetReport {
   @JsonKey(name: 'model_id')
   final int modelId;
   @JsonKey(name: 'precision')
@@ -173,7 +173,7 @@ class Report {
   @JsonKey(name: 'class_res')
   final List<ClassRes> classRes;
 
-  Report({
+  DataSetReport({
     required this.modelId,
     required this.precision,
     required this.recall,
@@ -181,9 +181,35 @@ class Report {
     required this.classRes,
   });
 
-  factory Report.fromJson(Map<String, dynamic> json) => _$ReportFromJson(json);
+  factory DataSetReport.fromJson(Map<String, dynamic> json) => _$DataSetReportFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ReportToJson(this);
+  Map<String, dynamic> toJson() => _$DataSetReportToJson(this);
+}
+
+@JsonSerializable()
+class ModelReport {
+  @JsonKey(name: 'dataset_id')
+  final int datasetId;
+  @JsonKey(name: 'precision')
+  final double precision;
+  @JsonKey(name: 'recall')
+  final double recall;
+  @JsonKey(name: 'macro_f1')
+  final double macroF1;
+  @JsonKey(name: 'class_res')
+  final List<ClassRes> classRes;
+
+  ModelReport({
+    required this.datasetId,
+    required this.precision,
+    required this.recall,
+    required this.macroF1,
+    required this.classRes,
+  });
+
+  factory ModelReport.fromJson(Map<String, dynamic> json) => _$ModelReportFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ModelReportToJson(this);
 }
 
 @JsonSerializable()
@@ -206,8 +232,6 @@ class ClassRes {
   Map<String, dynamic> toJson() => _$ClassResToJson(this);
 }
 
-// 1.	status/message：
-// 200：获取成功
 // 2.	dataset_num:
 // 3.	dataset_list:
 // [
@@ -308,7 +332,7 @@ class DataSetDetail {
   @JsonKey(name: 'report_num')
   final int reportNum;
   @JsonKey(name: 'report')
-  final List<Report> report;
+  final List<DataSetReport> report;
 
   DataSetDetail({
     required this.message,

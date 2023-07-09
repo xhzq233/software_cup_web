@@ -1,13 +1,28 @@
 import 'package:flutter/material.dart';
+import 'main_index.dart';
+
+const _kIndex = MainPageIndex.train;
+
+
 
 class TrainPage extends StatelessWidget {
   const TrainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    return Column(
       children: [
-        Text('预置模型调参提供了一种低代码的视觉模型开发方式，开发者无需关注构建模型的细节，而只需要选择合适的预训练模型、网络并通过简单参数配置即可快速构建高精度的视觉模型。'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_kIndex.pageTitle, style: textTheme.headlineLarge),
+            width16,
+            Flexible(child: Text(_kIndex.description, style: textTheme.titleLarge))
+          ],
+        ),
       ],
     );
   }
