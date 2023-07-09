@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:software_cup_web/generated/assets.dart';
 
 class DescriptionPage extends StatelessWidget {
   const DescriptionPage({super.key});
@@ -34,7 +35,7 @@ class DescriptionPage extends StatelessWidget {
                       Row(
                         children: [
                           const Spacer(flex: 2),
-                          Image.asset('assets/lab.png', height: 56),
+                          Image.asset(Assets.assetsLab, height: 56),
                           const SizedBox(width: 12),
                           Text(
                             '华中科技大学CPSS战队',

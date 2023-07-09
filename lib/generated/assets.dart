@@ -3,6 +3,5 @@ class Assets {
   Assets._();
 
   static const String assetsLab = 'assets/lab.png';
-  static const String assetsYuanhui = 'assets/yuanhui.png';
 
 }
