@@ -3,6 +3,7 @@ import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/pages/home/desc_page.dart';
 import 'package:software_cup_web/pages/home/doc_page.dart';
 import 'package:software_cup_web/pages/home/main_page.dart';
+import 'package:software_cup_web/theme.dart';
 import 'package:software_cup_web/token/token.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -112,11 +113,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         }
       },
     );
+    final themeSwitch = ListenableBuilder(
+      listenable: themeNotifier,
+      builder: (context, _) {
+        return IconButton(
+          icon: Icon(themeNotifier.isDark ? Icons.brightness_7 : Icons.brightness_4),
+          onPressed: () {
+            themeNotifier.changeTheme();
+          },
+        );
+      },
+    );
     return Row(
       children: [
         Expanded(child: tabBar),
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 168, minWidth: 0),
+          constraints: const BoxConstraints(maxWidth: 198, minWidth: 0),
           child: BoxyColumn(
             children: [
               const Spacer(),
@@ -124,6 +136,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const SizedBox(width: 6),
+                    themeSwitch,
                     const SizedBox(width: 6),
                     avatarView,
                     username,
