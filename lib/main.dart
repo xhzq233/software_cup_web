@@ -19,7 +19,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: '你所热爱的',
-      theme: ThemeData.light(useMaterial3: useMaterial3),
+      theme: ThemeData.dark(useMaterial3: useMaterial3),
       darkTheme: ThemeData.dark(useMaterial3: useMaterial3),
       initialRoute: tokenManager.isAuthed ? '/home' : '/login',
       routes: {

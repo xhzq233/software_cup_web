@@ -60,8 +60,8 @@ class DescriptionPage extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: Padding(
             padding: const EdgeInsets.only(top: 36.0),
-            child: Image.network(
-              'http://cse.hust.edu.cn/dfiles/4072/wlaq/res/201907/15/60fb82af871979c8.jpg',
+            child: Image.asset(
+              Assets.assetsWa,
               color: theme.colorScheme.onBackground,
               fit: BoxFit.fitHeight,
               height: MediaQuery.of(context).size.height * 0.15,

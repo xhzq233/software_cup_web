@@ -148,7 +148,7 @@ class _SCTableState<T> extends State<SCTable<T>> {
   @override
   Widget build(BuildContext context) {
     final columns = <DataColumn>[];
-    print('build table<T>: $T, widget.data.first.runtimeType: ${widget.data.first.runtimeType}');
+    // print('build table<T>: $T, widget.data.first.runtimeType: ${widget.data.first.runtimeType}');
     if (widget.data.first is DataSet) {
       final data = widget.data as List<DataSet>;
       columns.addAll([
