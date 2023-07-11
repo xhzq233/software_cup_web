@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -108,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
         controller: nameController,
         decoration: InputDecoration(
           labelText: state.labelText,
-          prefixIcon: const Icon(Icons.person),
+          prefixIcon: const Icon(CupertinoIcons.person_circle),
           hintText: state.hintText,
         ),
       ),
@@ -117,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
         controller: passwordController,
         decoration: InputDecoration(
           labelText: state.passwdLabelText,
-          prefixIcon: const Icon(Icons.lock),
+          prefixIcon: const Icon(CupertinoIcons.lock_circle),
           hintText: state.passwdHintText,
         ),
       ),

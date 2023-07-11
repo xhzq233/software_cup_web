@@ -175,3 +175,89 @@ Map<String, dynamic> _$DataSetDetailToJson(DataSetDetail instance) =>
       'report_num': instance.reportNum,
       'report': instance.report,
     };
+
+PredictionResp _$PredictionRespFromJson(Map<String, dynamic> json) =>
+    PredictionResp(
+      message: json['message'] as String,
+      predResNum: json['pred_res_num'] as int,
+      predRes: Map<String, int>.from(json['pred_res'] as Map),
+      macroF1: (json['macro_f1'] as num).toDouble(),
+      precision: (json['precision'] as num).toDouble(),
+      recall: (json['recall'] as num).toDouble(),
+      kClass: json['k_class'] as int,
+      classRes: (json['class_res'] as List<dynamic>)
+          .map((e) => ClassRes.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$PredictionRespToJson(PredictionResp instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'pred_res_num': instance.predResNum,
+      'pred_res': instance.predRes,
+      'macro_f1': instance.macroF1,
+      'precision': instance.precision,
+      'recall': instance.recall,
+      'k_class': instance.kClass,
+      'class_res': instance.classRes,
+    };
+
+TrainStreamData _$TrainStreamDataFromJson(Map<String, dynamic> json) =>
+    TrainStreamData(
+      message: json['message'] as String,
+      code: json['code'] as int?,
+      modelType: json['model_type'] as String?,
+      process: (json['process'] as num?)?.toDouble(),
+      log: json['log'] as String?,
+      result: json['result'] == null
+          ? null
+          : TrainResult.fromJson(json['result'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$TrainStreamDataToJson(TrainStreamData instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'code': instance.code,
+      'model_type': instance.modelType,
+      'process': instance.process,
+      'log': instance.log,
+      'result': instance.result,
+    };
+
+TrainResult _$TrainResultFromJson(Map<String, dynamic> json) => TrainResult(
+      basic: TrainResultBasic.fromJson(json['basic'] as Map<String, dynamic>),
+      classFeature: (json['class_feature'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry(k, (e as List<dynamic>).map((e) => e as String).toList()),
+      ),
+    );
+
+Map<String, dynamic> _$TrainResultToJson(TrainResult instance) =>
+    <String, dynamic>{
+      'basic': instance.basic,
+      'class_feature': instance.classFeature,
+    };
+
+TrainResultBasic _$TrainResultBasicFromJson(Map<String, dynamic> json) =>
+    TrainResultBasic(
+      name: json['name'] as String,
+      id: json['id'] as int,
+      type: json['type'] as String,
+      status: json['status'] as String,
+      createTime: json['createTime'] as String,
+      macroF1: (json['macro_f1'] as num).toDouble(),
+      featureNum: json['feature_num'] as int,
+      kClass: json['k_class'] as int,
+    );
+
+Map<String, dynamic> _$TrainResultBasicToJson(TrainResultBasic instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'id': instance.id,
+      'type': instance.type,
+      'status': instance.status,
+      'createTime': instance.createTime,
+      'macro_f1': instance.macroF1,
+      'feature_num': instance.featureNum,
+      'k_class': instance.kClass,
+    };

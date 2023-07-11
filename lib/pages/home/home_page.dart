@@ -1,4 +1,5 @@
 import 'package:boxy/flex.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/pages/home/desc_page.dart';
 import 'package:software_cup_web/pages/home/doc_page.dart';
@@ -106,7 +107,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
     final theme = Theme.of(context);
     final avatarView = IconButton(
-      icon: const Icon(Icons.account_circle),
+      icon: const Icon(CupertinoIcons.person_circle),
       onPressed: () {
         if (tokenManager.isAuthed) {
           Get.find<AuthedAPIProvider>().logout();
@@ -117,7 +118,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       listenable: themeNotifier,
       builder: (context, _) {
         return IconButton(
-          icon: Icon(themeNotifier.isDark ? Icons.brightness_7 : Icons.brightness_4),
+          icon: Icon(themeNotifier.isDark ? CupertinoIcons.sun_max : CupertinoIcons.moon_circle),
           onPressed: () {
             themeNotifier.changeTheme();
           },

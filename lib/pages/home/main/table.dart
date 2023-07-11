@@ -9,8 +9,9 @@ class SCTable<T> extends StatefulWidget {
   final List<T> data;
   final bool selectAble;
   final Set<T> selected;
+  final int? limit;
 
-  const SCTable({super.key, required this.data, this.selectAble = false, this.selected = const {}});
+  const SCTable({super.key, required this.data, this.selectAble = false, this.selected = const {}, this.limit});
 
   @override
   State<SCTable<T>> createState() => _SCTableState<T>();
@@ -19,6 +20,8 @@ class SCTable<T> extends StatefulWidget {
 class _SCTableState<T> extends State<SCTable<T>> {
   bool _sortAscending = true;
   int _sortColumnIndex = 1;
+
+  bool get reachLimit => !(widget.selectAble && (widget.limit == null || widget.selected.length < (widget.limit!)));
 
   void _getDetail(T data) {
     if (data is DataSet) {
@@ -58,6 +61,10 @@ class _SCTableState<T> extends State<SCTable<T>> {
   DataRow _buildRow(T dataSet) {
     void onSelectChanged(bool? value) {
       if (value == true) {
+        if (reachLimit) {
+          // 去除第一个
+          widget.selected.remove(widget.selected.first);
+        }
         widget.selected.add(dataSet);
       } else {
         widget.selected.remove(dataSet);

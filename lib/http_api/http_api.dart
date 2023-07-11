@@ -69,7 +69,7 @@ class CustomInterceptors extends Interceptor {
       handler.resolve(response);
     } else {
       SmartDialog.showToast('网络错误');
-      super.onError(err, handler);
+      return;
     }
   }
 }
@@ -549,7 +549,7 @@ class AuthedAPIProvider extends API {
         }
       });
 
-// 模型训练
+// 模型训练*#
 // URL：/train
 // 请求类型：POST
 // 参数：
@@ -572,15 +572,17 @@ class AuthedAPIProvider extends API {
 // 0：正在训练
 // 1：训练成功结束
 // 2：训练异常终止（可能没有）
-// 1001：dataset_id不存在
-// 1002：model_type不存在
-// 100x：指示param错误，根据model_type确定（待定）
+// 1000：（参数/token缺失）
+// 1001：model_name过长或过短
+// 1002：dataset_id不存在
+// 1003：model_type不存在
+// 100x：指示哪个param错误，根据model_type确定（待定）
 // 3.	model_type		//仅在code=100x时包含，方便确定参数错误内容
-// 4.	process:	//训练进度
-// 	5.	log:		//训练时的输出
+// 4.	process:		//训练进度，仅在code=0时包含
+// 	5.	log:			//训练时的输出，仅在code=0时包含
 // 	6．	result:		//训练结果，仅在code=1时包含该内容
 // 	{
-// 		basic:		//模型基础信息，可用于更新模型列表
+// 		basic:		//模型基础信息，可用于更新模型列表，不显示
 // 		{
 // 			name:		// 模型名称，字符串
 // 			id:			// 模型id，整型
@@ -591,27 +593,21 @@ class AuthedAPIProvider extends API {
 // feature_num：// 输入特征
 // k_class：	 //k分类（输出）
 // }
-// precision:	//模型精度
-// class_res_num:	//类型列表长度
-// class_res:		//类型列表
-// [
-// 		{			//每类的结果
-// 			precision:
-// 			recall:
-// 			f1:
-// 			features: // 每个类别对应的feature,字符串列表
-// [
-// ,
-// ]
-// },
+// class_feature: // 每个class对应的feature,json形式，作为结果显示
+// {
+// “class1”:[“feature1”, “feature10”],
 // …
-// ]
+// {
 // 	}
-// 备注：训练无法开始时返回内容仅包含status、code、message等，具体的错误会在code和message中给出。训练成功开始时持续返回JSON，每个JSON都包含上述内容（1、2、4、5）
+// 备注：
+// 1.	训练无法开始时返回内容仅包含status、code、message等，具体的错误会在code和message中给出。训练成功开始时持续返回JSON，每个JSON包含上述内容的1、2、4、5。训练结束时返回的JSON包含上述内容的1、2、6。
+// 2.	如果前端在训练结束后直接重新获取模型列表，则可以不返回basic
 
-  Future<Response> train(String modelName, int datasetId, String modelType, Map<String, dynamic> params) =>
-      httpClient.post('/train',
-          data: {'model_name': modelName, 'dataset_id': datasetId, 'model_type': modelType, 'params': params});
+  Future<Response<ResponseBody>> train(
+          String modelName, int datasetId, String modelType, Map<String, dynamic> params) =>
+      httpClient.post('/train/start',
+          data: {'model_name': modelName, 'dataset_id': datasetId, 'model_type': modelType, 'params': params},
+          options: Options(responseType: ResponseType.stream));
 
 // 获取正在训练的模型
 // URL：/train/training
@@ -627,35 +623,47 @@ class AuthedAPIProvider extends API {
 
   Future<Response> getTraining() => httpClient.get('/train/training');
 
-// 模型使用
+// 模型使用*
 // URL：/predict
 // 请求类型：POST
 // 参数：
 // 1.	model_id:
 // 2.	dataset_id：
+// 3.	update_f1:	//0表示不更新f1参考值，非0表示更新。由用户勾选
 // 请求头：
 // 1.	token
 // 响应内容：
 // 1．status/message：
 // 200：	//成功
 // 400：	//所选的数据集不存在/模型与数据集不匹配
-// 2．pred_res_num: //预测结果列表长度
-// 3．pred_res: // 预测结果列表
-// [
-// ans,		//每条测试数据的结果，形如{“id”：“class”}
+// 2．pred_res_num: //预测结果数量
+// 3．pred_res: // 预测结果，需要逐条展示
+// {
+// “0”:2,		//每条测试数据的结果是一个键值对
 // …
-// ]
-// 4．class_res_num:// 每类型测试精度列表长度
-// 5．class_res:		// 每类型测试精度列表
+// }
+// 4.macro_f1:	//f1
+// 5.precision:	//准确率
+// 6. recall:	 //召回率
+// 7．k_class:// 每类型测试精度列表长度
+// 8．class_res:		// 每类型测试精度列表
 // [
 // 	{
 // 		precision:
 // 		recall:
 // 		f1:
 // },
+// …
 // ]
-  Future<Response> predict(int modelId, int datasetId) =>
-      httpClient.post('/predict', data: {'model_id': modelId, 'dataset_id': datasetId});
+  Future<PredictionResp?> predict(int modelId, int datasetId, bool updateF1) => httpClient.post('/predict',
+          data: {'model_id': modelId, 'dataset_id': datasetId, 'update_f1': updateF1 ? 1 : 0}).then((resp) {
+        if (resp.statusCode == 200) {
+          return PredictionResp.fromJson(resp.data);
+        } else {
+          SmartDialog.showToast(resp.data['message']);
+          return null;
+        }
+      });
 
 // 预测结果下载
 // URL：/download/predict

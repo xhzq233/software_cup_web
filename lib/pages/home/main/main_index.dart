@@ -13,7 +13,7 @@ enum MainPageIndex {
   data(DataPage(key: Key('data')), '数据管理'),
   train(TrainPage(key: Key('train')), '训练管理'),
   model(ModelPage(key: Key('model')), '模型管理'),
-  predicate(PredicatePage(key: Key('predicate')), '模型使用');
+  predicate(PredicatePage(key: Key('predicate')), '模型预测');
 
   const MainPageIndex(this.page, this.pageTitle);
 
