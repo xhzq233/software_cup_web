@@ -47,29 +47,44 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
             Flexible(child: Text(_kIndex.description, style: textTheme.titleLarge))
           ],
         ),
-        TabBar(tabs: models.keys.map((e) => Tab(text: e)).toList(), controller: _tabController),
         Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children:
-                models.values.map((e) => Form(child: RepaintBoundary(child: e.buildConfig()))).toList(growable: false),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: theme.dividerColor),
-            borderRadius: BorderRadius.circular(8),
-            color: theme.colorScheme.onSecondary,
-          ),
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(8),
-          height: 360,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.zero,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Obx(() => Text(logs.value)),
-            ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TabBar(tabs: models.keys.map((e) => Tab(text: e)).toList(), controller: _tabController),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: models.values
+                            .map((e) => Form(child: RepaintBoundary(child: e.buildConfig())))
+                            .toList(growable: false),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.dividerColor),
+                  borderRadius: BorderRadius.circular(8),
+                  color: theme.colorScheme.onSecondary,
+                ),
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(8),
+                width: 360,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.zero,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Obx(() => Text(logs.value)),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         // actions
