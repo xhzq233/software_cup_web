@@ -41,15 +41,17 @@ Map<String, dynamic> _$ModelListResponseToJson(ModelListResponse instance) =>
     <String, dynamic>{
       'message': instance.message,
       'model_num': instance.modelNum,
-      'model_list': instance.modelList,
+      'model_list': instance.modelList.map((e) => e.toJson()).toList(),
     };
 
 ModelDetail _$ModelDetailFromJson(Map<String, dynamic> json) => ModelDetail(
       message: json['message'] as String,
       params: json['params'] as Map<String, dynamic>,
       kClass: json['k_class'] as int,
-      feature:
-          (json['feature'] as List<dynamic>).map((e) => e as String).toList(),
+      feature: (json['class_feature'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry(k, (e as List<dynamic>).map((e) => e as String).toList()),
+      ),
       reportNum: json['report_num'] as int,
       report: (json['report'] as List<dynamic>)
           .map((e) => ModelReport.fromJson(e as Map<String, dynamic>))
@@ -62,9 +64,9 @@ Map<String, dynamic> _$ModelDetailToJson(ModelDetail instance) =>
       'message': instance.message,
       'params': instance.params,
       'k_class': instance.kClass,
-      'feature': instance.feature,
+      'class_feature': instance.feature,
       'report_num': instance.reportNum,
-      'report': instance.report,
+      'report': instance.report.map((e) => e.toJson()).toList(),
       'remark': instance.remark,
     };
 
@@ -85,7 +87,7 @@ Map<String, dynamic> _$DataSetReportToJson(DataSetReport instance) =>
       'precision': instance.precision,
       'recall': instance.recall,
       'macro_f1': instance.macroF1,
-      'class_res': instance.classRes,
+      'class_res': instance.classRes.map((e) => e.toJson()).toList(),
     };
 
 ModelReport _$ModelReportFromJson(Map<String, dynamic> json) => ModelReport(
@@ -104,7 +106,7 @@ Map<String, dynamic> _$ModelReportToJson(ModelReport instance) =>
       'precision': instance.precision,
       'recall': instance.recall,
       'macro_f1': instance.macroF1,
-      'class_res': instance.classRes,
+      'class_res': instance.classRes.map((e) => e.toJson()).toList(),
     };
 
 ClassRes _$ClassResFromJson(Map<String, dynamic> json) => ClassRes(
@@ -133,7 +135,7 @@ Map<String, dynamic> _$DataSetListResponseToJson(
     <String, dynamic>{
       'message': instance.message,
       'dataset_num': instance.datasetNum,
-      'dataset_list': instance.datasetList,
+      'dataset_list': instance.datasetList.map((e) => e.toJson()).toList(),
     };
 
 DataSet _$DataSetFromJson(Map<String, dynamic> json) => DataSet(
@@ -173,7 +175,7 @@ Map<String, dynamic> _$DataSetDetailToJson(DataSetDetail instance) =>
       'message': instance.message,
       'k_class': instance.kClass,
       'report_num': instance.reportNum,
-      'report': instance.report,
+      'report': instance.report.map((e) => e.toJson()).toList(),
     };
 
 PredictionResp _$PredictionRespFromJson(Map<String, dynamic> json) =>
@@ -199,16 +201,16 @@ Map<String, dynamic> _$PredictionRespToJson(PredictionResp instance) =>
       'precision': instance.precision,
       'recall': instance.recall,
       'k_class': instance.kClass,
-      'class_res': instance.classRes,
+      'class_res': instance.classRes.map((e) => e.toJson()).toList(),
     };
 
 TrainStreamData _$TrainStreamDataFromJson(Map<String, dynamic> json) =>
     TrainStreamData(
-      message: json['message'] as String,
-      code: json['code'] as int?,
+      message: json['message'] as String?,
+      code: json['code'] as String?,
       modelType: json['model_type'] as String?,
       process: (json['process'] as num?)?.toDouble(),
-      log: json['log'] as String?,
+      log: (json['log'] as num?)?.toDouble(),
       result: json['result'] == null
           ? null
           : TrainResult.fromJson(json['result'] as Map<String, dynamic>),
@@ -221,7 +223,7 @@ Map<String, dynamic> _$TrainStreamDataToJson(TrainStreamData instance) =>
       'model_type': instance.modelType,
       'process': instance.process,
       'log': instance.log,
-      'result': instance.result,
+      'result': instance.result?.toJson(),
     };
 
 TrainResult _$TrainResultFromJson(Map<String, dynamic> json) => TrainResult(
@@ -234,7 +236,7 @@ TrainResult _$TrainResultFromJson(Map<String, dynamic> json) => TrainResult(
 
 Map<String, dynamic> _$TrainResultToJson(TrainResult instance) =>
     <String, dynamic>{
-      'basic': instance.basic,
+      'basic': instance.basic.toJson(),
       'class_feature': instance.classFeature,
     };
 

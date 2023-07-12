@@ -53,7 +53,7 @@ class Model {
 // 200：获取成功
 // 2.	model_num:
 // 3.	model_list:
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ModelListResponse {
   @JsonKey(name: 'message')
   final String message;
@@ -105,7 +105,7 @@ class ModelListResponse {
 // ]
 // 7. remark:		//用户对模型的备注
 // 备注：模型详情页面主要显示三个模块：（1）params（2）模型的report列表（3）remark
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ModelDetail {
   @JsonKey(name: 'message')
   final String message;
@@ -113,8 +113,8 @@ class ModelDetail {
   final Map<String, dynamic> params;
   @JsonKey(name: 'k_class')
   final int kClass;
-  @JsonKey(name: 'feature')
-  final List<String> feature;
+  @JsonKey(name: 'class_feature')
+  final ClassFeat feature;
   @JsonKey(name: 'report_num')
   final int reportNum;
   @JsonKey(name: 'report')
@@ -160,7 +160,7 @@ class ModelDetail {
 //       "precision": 0.9,
 //       "recall": 0.9
 //     }
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class DataSetReport {
   @JsonKey(name: 'model_id')
   final int modelId;
@@ -186,7 +186,7 @@ class DataSetReport {
   Map<String, dynamic> toJson() => _$DataSetReportToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ModelReport {
   @JsonKey(name: 'dataset_id')
   final int datasetId;
@@ -212,7 +212,7 @@ class ModelReport {
   Map<String, dynamic> toJson() => _$ModelReportToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ClassRes {
   @JsonKey(name: 'precision')
   final double precision;
@@ -247,7 +247,7 @@ class ClassRes {
 // },
 // …
 // ]
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class DataSetListResponse {
   @JsonKey(name: 'message')
   final String message;
@@ -267,7 +267,7 @@ class DataSetListResponse {
   Map<String, dynamic> toJson() => _$DataSetListResponseToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class DataSet {
   @JsonKey(name: 'name')
   final String name;
@@ -323,7 +323,7 @@ class DataSet {
 // },
 // ……
 // ]
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class DataSetDetail {
   @JsonKey(name: 'message')
   final String message;
@@ -373,7 +373,7 @@ class DataSetDetail {
 // },
 // …
 // ]
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class PredictionResp {
   @JsonKey(name: 'message')
   final String message;
@@ -449,12 +449,12 @@ class PredictionResp {
 // {
 // 	}
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class TrainStreamData {
   @JsonKey(name: 'message')
-  final String message;
+  final String? message;
   @JsonKey(name: 'code')
-  final int? code;
+  final String? code;
 
   //仅在code=100x时包含，方便确定参数错误内容
   @JsonKey(name: 'model_type')
@@ -466,7 +466,7 @@ class TrainStreamData {
 
   //训练时的输出，仅在code=0时包含
   @JsonKey(name: 'log')
-  final String? log;
+  final double? log;
 
   //训练结果，仅在code=1时包含该内容
   @JsonKey(name: 'result')
@@ -486,12 +486,14 @@ class TrainStreamData {
   Map<String, dynamic> toJson() => _$TrainStreamDataToJson(this);
 }
 
-@JsonSerializable()
+typedef ClassFeat = Map<String, List<String>>;
+
+@JsonSerializable(explicitToJson: true)
 class TrainResult {
   @JsonKey(name: 'basic')
   final TrainResultBasic basic;
   @JsonKey(name: 'class_feature')
-  final Map<String, List<String>> classFeature;
+  final ClassFeat classFeature;
 
   TrainResult({
     required this.basic,
@@ -508,7 +510,7 @@ class TrainResult {
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class TrainResultBasic {
   @JsonKey(name: 'name')
   final String name;

@@ -16,13 +16,10 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const useMaterial3 = true;
     final routes = {
       '/home': (context) => const HomePage(),
       '/login': (context) => const LoginPage(),
     };
-    final lightTheme = ThemeData.light(useMaterial3: useMaterial3);
-    final darkTheme = ThemeData.dark(useMaterial3: useMaterial3);
     return ListenableBuilder(
       listenable: themeNotifier,
       builder: (ctx, child) => MaterialApp(

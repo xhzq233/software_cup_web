@@ -1,76 +1,108 @@
 import 'package:flutter/material.dart';
+import 'package:software_cup_web/theme.dart';
 
 import 'main_index.dart';
 
 Widget _selectIntItem(int? init, String label, void Function(int) onChanged) {
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(label),
-      width16,
-      SizedBox(
-        width: 100,
-        child: TextFormField(
-          initialValue: init?.toString(),
-          keyboardType: TextInputType.number,
-          onChanged: (v) => onChanged(int.parse(v)),
-        ),
-      ),
-    ],
+  final cs = themeNotifier.isDark ? darkTheme.colorScheme : lightTheme.colorScheme;
+  return Container(
+    decoration: BoxDecoration(
+      border: Border.all(color: cs.primary, width: 1),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    width: 168,
+    margin: const EdgeInsets.all(4),
+    padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4),
+    child: TextFormField(
+      decoration: InputDecoration(labelText: label),
+      initialValue: init?.toString(),
+      keyboardType: TextInputType.number,
+      onChanged: (v) => onChanged(int.parse(v)),
+    ),
   );
 }
 
 Widget _selectDoubleItem(double init, String label, void Function(double) onChanged) {
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(label),
-      width16,
-      SizedBox(
-        width: 100,
-        child: TextFormField(
-          initialValue: init.toString(),
-          keyboardType: TextInputType.number,
-          onChanged: (v) => onChanged(double.parse(v)),
+  final cs = themeNotifier.isDark ? darkTheme.colorScheme : lightTheme.colorScheme;
+
+  return Container(
+    decoration: BoxDecoration(
+      border: Border.all(color: cs.primary, width: 1),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    margin: const EdgeInsets.all(4),
+    padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label),
+        width16,
+        SizedBox(
+          width: 100,
+          child: TextFormField(
+            initialValue: init.toString(),
+            keyboardType: TextInputType.number,
+            onChanged: (v) => onChanged(double.parse(v)),
+          ),
         ),
-      ),
-    ],
+      ],
+    ),
   );
 }
 
 // have Upper limit and lower limit
 Widget _selectNumItem(num init, num u, num l, String label, void Function(num) onChanged) {
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      SizedBox(width: 148, child: Align(child: Text('$label: ${init.toStringAsFixed(2)}'))),
-      width16,
-      SizedBox(
-        width: 198,
-        child: Slider(
-          value: init.toDouble(),
-          min: l.toDouble(),
-          max: u.toDouble(),
-          label: '$init',
-          onChanged: (v) => onChanged(v),
+  final cs = themeNotifier.isDark ? darkTheme.colorScheme : lightTheme.colorScheme;
+
+  return Container(
+    decoration: BoxDecoration(
+      border: Border.all(color: cs.primary, width: 1),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    margin: const EdgeInsets.all(4),
+    // padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(width: 128, child: Align(child: Text('${label.substring(0, 9)}: ${init.toStringAsFixed(2)}'))),
+        width16,
+        SizedBox(
+          width: 198,
+          child: Slider(
+            value: init.toDouble(),
+            min: l.toDouble(),
+            max: u.toDouble(),
+            label: '$init',
+            onChanged: (v) => onChanged(v),
+          ),
         ),
-      ),
-    ],
+      ],
+    ),
   );
 }
 
 Widget _selectSwitchItem<Tt>(Tt init, Set<Tt> available, String label, void Function(Tt) onChanged) {
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(label),
-      width16,
-      DropdownButton<Tt>(
-        value: init,
-        onChanged: (v) => onChanged(v ?? init),
-        items: available.map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(growable: false),
-      ),
-    ],
+  final cs = themeNotifier.isDark ? darkTheme.colorScheme : lightTheme.colorScheme;
+
+  return Container(
+    decoration: BoxDecoration(
+      border: Border.all(color: cs.primary, width: 1),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    margin: const EdgeInsets.all(4),
+    padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label),
+        width16,
+        DropdownButton<Tt>(
+          value: init,
+          onChanged: (v) => onChanged(v ?? init),
+          items: available.map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(growable: false),
+        ),
+      ],
+    ),
   );
 }
 

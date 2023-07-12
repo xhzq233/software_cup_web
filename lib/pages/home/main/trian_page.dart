@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:boxy/flex.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:software_cup_web/ext.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/pages/home/main/table.dart';
@@ -36,7 +36,7 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    return Column(
+    return BoxyColumn(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -55,7 +55,15 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                 models.values.map((e) => Form(child: RepaintBoundary(child: e.buildConfig()))).toList(growable: false),
           ),
         ),
-        Expanded(
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+            color: theme.colorScheme.onSecondary,
+          ),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(8),
+          height: 360,
           child: SingleChildScrollView(
             padding: EdgeInsets.zero,
             child: Align(
@@ -153,26 +161,36 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                           assert(data != null);
                           logs.value = '开始训练\n';
                           data!.stream.listen((event) {
-                            final str = utf8.decode(event);
-                            debugPrint(str);
-                            final TrainStreamData data = TrainStreamData.fromJson(jsonDecode(str));
-                            if (data.code == 1) {
-                              // complete
-                              result.value = data.result;
-                              assert(data.result != null);
-                              final log = data.result!.toString();
-                              logs.value += '训练完成: $log\n';
-                            } else if (data.code == 0) {
-                              assert(data.process != null && data.log != null);
-                              // progress
-                              logs.value += 'log:${data.log!} progress: ${data.process!}\n';
-                            } else {
-                              // error
-                              logs.value += 'error: $e\n';
+                            final strs = utf8
+                                .decode(event)
+                                .split('\n')
+                                .map((e) => e.trim())
+                                .where((element) => element.isNotEmpty);
+                            debugPrint(strs.join('\n'));
+                            for (final str in strs) {
+                              final TrainStreamData data = TrainStreamData.fromJson(jsonDecode(str));
+                              if (data.code == "1") {
+                                // complete
+                                result.value = data.result;
+                                assert(data.result != null);
+                                final log = data.result!.toString();
+                                logs.value += '训练完成: $log\n';
+                                storageProvider.forceGetModelList();
+                              } else if (data.code == "0") {
+                                assert(data.process != null && data.log != null);
+                                // progress
+                                logs.value += 'log: ${data.log!}, progress: ${data.process!}\n';
+                              } else {
+                                // error
+                                logs.value += 'error: $str\n';
+                              }
                             }
                           }, onError: (e) {
                             logs.value += 'error: $e\n';
+                          }, onDone: () {
+                            storageProvider.forceGetModelList();
                           });
+                          storageProvider.forceGetModelList();
                         });
                       },
                 child: const Text('训练'),

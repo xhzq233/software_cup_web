@@ -1,6 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 final themeNotifier = ThemeNotifier();
+const useMaterial3 = true;
+final lightTheme = ThemeData.light(useMaterial3: useMaterial3);
+final darkTheme = ThemeData.dark(useMaterial3: useMaterial3);
 
 class ThemeNotifier extends ChangeNotifier {
   bool _isDark = true;
