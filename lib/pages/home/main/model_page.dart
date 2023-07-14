@@ -159,6 +159,7 @@ class _ModelPageState extends State<ModelPage> {
                             ),
                             actions: [
                               TextButton(onPressed: () => Get.back(), child: const Text('确定')),
+                              ElevatedButton(onPressed: () => authedAPI.downloadPredict(),child: const Text('下载')),
                             ],
                           ));
                         }
