@@ -169,6 +169,23 @@ class _ModelPageState extends State<ModelPage> {
                 );
               },
             ),
+            width16,
+            Obx(
+              () {
+                final show = selectAble.value == false;
+                return IgnorePointer(
+                  ignoring: !show,
+                  child: AnimatedOpacity(
+                    opacity: show ? 1 : 0,
+                    duration: _kAnimationDuration,
+                    child: ElevatedButton(
+                      onPressed: authedAPI.downloadPredict,
+                      child: const Text('上一次预测下载'),
+                    ),
+                  ),
+                );
+              },
+            ),
             const Spacer(),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 168, minWidth: 0, maxHeight: 44, minHeight: 44),

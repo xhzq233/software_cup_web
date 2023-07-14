@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:boxy/flex.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -31,12 +30,13 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
   final Rx<TrainResult?> result = Rx(null);
   final Rx<DataSet?> selectedDataSet = Rx(null);
   final Rx<String> logs = Rx('');
+  final Rx<double> progress = Rx(0);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    return BoxyColumn(
+    return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -47,24 +47,37 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
             Flexible(child: Text(_kIndex.description, style: textTheme.titleLarge))
           ],
         ),
+        TabBar(tabs: models.keys.map((e) => Tab(text: e)).toList(), controller: _tabController),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TabBar(tabs: models.keys.map((e) => Tab(text: e)).toList(), controller: _tabController),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: models.values
-                            .map((e) => Form(child: RepaintBoundary(child: e.buildConfig())))
-                            .toList(growable: false),
-                      ),
-                    ),
-                  ],
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 4,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    valueIndicatorShape: const DropSliderValueIndicatorShape(),
+                  ),
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: models.values
+                        .map(
+                          (e) => Form(
+                            child: RepaintBoundary(
+                              child: SingleChildScrollView(
+                                child: Builder(
+                                  builder: (context) => Wrap(
+                                    children: e.buildConfig(context),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
                 ),
               ),
               Container(
@@ -73,9 +86,10 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                   borderRadius: BorderRadius.circular(8),
                   color: theme.colorScheme.onSecondary,
                 ),
-                margin: const EdgeInsets.only(bottom: 8),
+                margin: const EdgeInsets.all(8),
                 padding: const EdgeInsets.all(8),
                 width: 360,
+                height: double.infinity,
                 child: SingleChildScrollView(
                   padding: EdgeInsets.zero,
                   child: Align(
@@ -136,7 +150,6 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                     ? null
                     : () async {
                         String? name;
-
                         final res = await Get.dialog(
                           AlertDialog(
                             title: const Text('输入模型名称'),
@@ -195,6 +208,7 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                                 assert(data.process != null && data.log != null);
                                 // progress
                                 logs.value += 'log: ${data.log!}, progress: ${data.process!}\n';
+                                progress.value = data.process!;
                               } else {
                                 // error
                                 logs.value += 'error: $str\n';
@@ -211,9 +225,24 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                 child: const Text('训练'),
               ),
             ),
-            width16,
-            // ElevatedButton(onPressed: () {}, child: const Text('下载')),
-            // width16,
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                width: 360,
+                child: Obx(
+                  () => Row(
+                    children: [
+                      Text('进度: ${(progress.value * 100).toStringAsFixed(2)}%'),
+                      width8,
+                      Expanded(
+                        child: LinearProgressIndicator(value: progress.value),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ],

@@ -1,6 +1,5 @@
 import 'package:software_cup_web/pages/home/main/data_page.dart';
 import 'package:software_cup_web/pages/home/main/model_page.dart';
-import 'package:software_cup_web/pages/home/main/predicate_page.dart';
 import 'package:software_cup_web/pages/home/main/trian_page.dart';
 import 'package:flutter/widgets.dart';
 

@@ -16,7 +16,8 @@ const kDuration = Duration(milliseconds: 300);
 enum LoginLayoutState {
   login,
   register,
-  forget;
+  // forget
+  ;
 
   String get labelText {
     return '用户名';
@@ -30,8 +31,8 @@ enum LoginLayoutState {
     switch (this) {
       case login || register:
         return '密码';
-      case forget:
-        return '新密码';
+      // case forget:
+      //   return '新密码';
     }
   }
 
@@ -39,8 +40,8 @@ enum LoginLayoutState {
     switch (this) {
       case login || register:
         return '请输入密码';
-      case forget:
-        return '请输入新密码';
+      // case forget:
+      //   return '请输入新密码';
     }
   }
 
@@ -50,8 +51,8 @@ enum LoginLayoutState {
         return '登录';
       case register:
         return '注册';
-      case forget:
-        return '重置密码';
+      // case forget:
+      //   return '重置密码';
     }
   }
 
@@ -61,8 +62,8 @@ enum LoginLayoutState {
         return ('注册', '忘记密码');
       case register:
         return ('登录', '忘记密码');
-      case forget:
-        return ('登录', '注册');
+      // case forget:
+      //   return ('登录', '注册');
     }
   }
 }
@@ -76,10 +77,10 @@ class _LoginPageState extends State<LoginPage> {
   late final mainActionsMap = {
     LoginLayoutState.login: login,
     LoginLayoutState.register: register,
-    LoginLayoutState.forget: forget,
+    // LoginLayoutState.forget: forget,
   };
 
-  void forget() {}
+  // void forget() {}
 
   void register() {
     unAuthAPI.register(nameController.text, passwordController.text).then((resp) {

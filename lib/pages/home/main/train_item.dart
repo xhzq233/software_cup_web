@@ -5,7 +5,7 @@ import 'package:software_cup_web/theme.dart';
 import 'main_index.dart';
 
 // have Upper limit and lower limit
-Widget _selectNumItem(num init, {num u = 0, num l = 1, String label = '', void Function(num)? onChanged}) {
+Widget _selectNumItem(num init, {num u = 1, num l = 0, String label = '', void Function(num)? onChanged}) {
   final theme = themeNotifier.isDark ? darkTheme : lightTheme;
   final cs = theme.colorScheme;
 
@@ -15,11 +15,17 @@ Widget _selectNumItem(num init, {num u = 0, num l = 1, String label = '', void F
       borderRadius: BorderRadius.circular(8),
     ),
     margin: const EdgeInsets.all(4),
-    padding: const EdgeInsets.all(2),
+    padding: const EdgeInsets.all(4),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(width: 128, child: FittedBox(child: Text('$label: ${init.toStringAsFixed(2)}'))),
+        SizedBox(
+          width: 128,
+          height: 32,
+          child: FittedBox(
+            child: Text('$label: ${init is int ? init : init.toStringAsFixed(2)}'),
+          ),
+        ),
         width4,
         SizedBox(
           width: 198,
@@ -27,7 +33,7 @@ Widget _selectNumItem(num init, {num u = 0, num l = 1, String label = '', void F
             value: init.toDouble(),
             min: l.toDouble(),
             max: u.toDouble(),
-            // divisions: init is int ? 1 : null,
+            divisions: init is int ? (u - l).toInt() : null,
             label: '$init',
             onChanged: (v) => onChanged?.call(v),
           ),
@@ -65,7 +71,7 @@ Widget _selectSwitchItem<Tt>(Tt init, Set<Tt> available, String label, void Func
 mixin ConfigBuilder {
   String get name;
 
-  Widget buildConfig();
+  List<Widget> buildConfig(BuildContext context);
 
   Map<String, Object?> toJson();
 }
@@ -96,56 +102,48 @@ class LGBMClassifier with ConfigBuilder {
   int random_state = 42;
 
   @override
-  Widget buildConfig() {
-    return Builder(
-      builder: (context) => Wrap(
-        spacing: 16,
-        runSpacing: 16,
-        children: [
-          _selectSwitchItem(boosting_type, {'gbdt', 'dart', 'goss'}, 'boosting_type', (v) {
-            boosting_type = v;
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(num_leaves, l: 1, u: 10000, label: 'num_leaves', onChanged: (v) {
-            num_leaves = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(max_depth, l: 1, u: 100, label: 'max_depth', onChanged: (v) {
-            max_depth = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(learning_rate, l: 0.001, u: 10, label: 'learning_rate', onChanged: (v) {
-            learning_rate = v.toDouble();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(n_estimators, l: 1, u: 10000, label: 'n_estimators', onChanged: (v) {
-            n_estimators = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(Subsample, l: 0.1, u: 1.0, label: 'Subsample', onChanged: (v) {
-            Subsample = v.toDouble();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(colsample_bytree, l: 0.1, u: 1.0, label: 'colsample_bytree', onChanged: (v) {
-            colsample_bytree = v.toDouble();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(reg_alpha, l: 0.001, u: 100, label: 'reg_alpha', onChanged: (v) {
-            reg_alpha = v.toDouble();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(reg_lambda, l: 0.001, u: 100, label: 'reg_lambda', onChanged: (v) {
-            reg_lambda = v.toDouble();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(random_state, l: 1, u: 10000, label: 'random_state', onChanged: (v) {
-            random_state = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-        ],
-      ),
-    );
-  }
+  List<Widget> buildConfig(BuildContext context) => [
+        _selectSwitchItem(boosting_type, {'gbdt', 'dart', 'goss'}, 'boosting_type', (v) {
+          boosting_type = v;
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(num_leaves, l: 1, u: 10000, label: 'num_leaves', onChanged: (v) {
+          num_leaves = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(max_depth, l: 1, u: 100, label: 'max_depth', onChanged: (v) {
+          max_depth = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(learning_rate, l: 0.001, u: 10, label: 'learning_rate', onChanged: (v) {
+          learning_rate = v.toDouble();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(n_estimators, l: 1, u: 10000, label: 'n_estimators', onChanged: (v) {
+          n_estimators = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(Subsample, l: 0.1, u: 1.0, label: 'Subsample', onChanged: (v) {
+          Subsample = v.toDouble();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(colsample_bytree, l: 0.1, u: 1.0, label: 'colsample_bytree', onChanged: (v) {
+          colsample_bytree = v.toDouble();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(reg_alpha, l: 0.001, u: 100, label: 'reg_alpha', onChanged: (v) {
+          reg_alpha = v.toDouble();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(reg_lambda, l: 0.001, u: 100, label: 'reg_lambda', onChanged: (v) {
+          reg_lambda = v.toDouble();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(random_state, l: 1, u: 10000, label: 'random_state', onChanged: (v) {
+          random_state = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+      ];
 
   @override
   Map<String, Object?> toJson() => {
@@ -189,56 +187,48 @@ class RandomForestClassifier with ConfigBuilder {
   double ccp_alpha = 0.001;
 
   @override
-  Widget buildConfig() {
-    return Builder(
-      builder: (context) => Wrap(
-        spacing: 16,
-        runSpacing: 16,
-        children: [
-          _selectSwitchItem(criterion, {'gini', 'entropy'}, 'criterion', (v) {
-            criterion = v;
-            (context as Element).markNeedsBuild();
-          }),
-          _selectSwitchItem(max_features, {'auto', 'sqrt', 'log2'}, 'max_features', (v) {
-            max_features = v;
-            (context as Element).markNeedsBuild();
-          }),
-          _selectSwitchItem(bootstrap, {true, false}, 'bootstrap', (v) {
-            bootstrap = v;
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(n_estimators, l: 1, u: 10000, label: 'n_estimators', onChanged: (v) {
-            n_estimators = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(max_depth, l: 1, u: 100, label: 'max_depth', onChanged: (v) {
-            max_depth = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(min_samples_split, l: 2, u: 100, label: 'min_samples_split', onChanged: (v) {
-            min_samples_split = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(min_samples_leaf, l: 1, u: 100, label: 'min_samples_leaf', onChanged: (v) {
-            min_samples_leaf = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(max_samples, l: 0.1, u: 1.0, label: 'max_samples', onChanged: (v) {
-            max_samples = v.toDouble();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(random_state, l: 1, u: 10000, label: 'random_state', onChanged: (v) {
-            random_state = v.toInt();
-            (context as Element).markNeedsBuild();
-          }),
-          _selectNumItem(ccp_alpha, l: 0.001, u: 10, label: 'ccp_alpha', onChanged: (v) {
-            ccp_alpha = v.toDouble();
-            (context as Element).markNeedsBuild();
-          }),
-        ],
-      ),
-    );
-  }
+  List<Widget> buildConfig(BuildContext context) => [
+        _selectSwitchItem(criterion, {'gini', 'entropy'}, 'criterion', (v) {
+          criterion = v;
+          (context as Element).markNeedsBuild();
+        }),
+        _selectSwitchItem(max_features, {'auto', 'sqrt', 'log2'}, 'max_features', (v) {
+          max_features = v;
+          (context as Element).markNeedsBuild();
+        }),
+        _selectSwitchItem(bootstrap, {true, false}, 'bootstrap', (v) {
+          bootstrap = v;
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(n_estimators, l: 1, u: 10000, label: 'n_estimators', onChanged: (v) {
+          n_estimators = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(max_depth, l: 1, u: 100, label: 'max_depth', onChanged: (v) {
+          max_depth = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(min_samples_split, l: 2, u: 100, label: 'min_samples_split', onChanged: (v) {
+          min_samples_split = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(min_samples_leaf, l: 1, u: 100, label: 'min_samples_leaf', onChanged: (v) {
+          min_samples_leaf = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(max_samples, l: 0.1, u: 1.0, label: 'max_samples', onChanged: (v) {
+          max_samples = v.toDouble();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(random_state, l: 1, u: 10000, label: 'random_state', onChanged: (v) {
+          random_state = v.toInt();
+          (context as Element).markNeedsBuild();
+        }),
+        _selectNumItem(ccp_alpha, l: 0.001, u: 10, label: 'ccp_alpha', onChanged: (v) {
+          ccp_alpha = v.toDouble();
+          (context as Element).markNeedsBuild();
+        }),
+      ];
 
   @override
   Map<String, Object?> toJson() => {
@@ -278,9 +268,7 @@ class XGBClassifier with ConfigBuilder {
   int random_state = 42;
 
   @override
-  Widget buildConfig() {
-    return Builder(
-      builder: (context) => Wrap(spacing: 16, runSpacing: 16, children: [
+  List<Widget> buildConfig(BuildContext context) => [
         _selectNumItem(max_depth, l: 1, u: 100, label: 'max_depth', onChanged: (v) {
           max_depth = v.toInt();
           (context as Element).markNeedsBuild();
@@ -313,9 +301,7 @@ class XGBClassifier with ConfigBuilder {
           random_state = v.toInt();
           (context as Element).markNeedsBuild();
         }),
-      ]),
-    );
-  }
+      ];
 
   @override
   Map<String, Object?> toJson() => {
@@ -351,9 +337,7 @@ class CatBoostClassifier with ConfigBuilder {
   double random_strength = 1.0;
 
   @override
-  Widget buildConfig() {
-    return Builder(
-      builder: (context) => Wrap(spacing: 16, runSpacing: 16, children: [
+  List<Widget> buildConfig(BuildContext context) => [
         _selectNumItem(learning_rate, l: 0.001, u: 10, label: 'learning_rate', onChanged: (v) {
           learning_rate = v.toDouble();
           (context as Element).markNeedsBuild();
@@ -382,9 +366,7 @@ class CatBoostClassifier with ConfigBuilder {
           random_strength = v.toDouble();
           (context as Element).markNeedsBuild();
         }),
-      ]),
-    );
-  }
+      ];
 
   @override
   Map<String, Object?> toJson() => {

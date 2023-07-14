@@ -677,5 +677,5 @@ class AuthedAPIProvider extends API {
 // 404：无预测结果可供下载
 // 备注：默认返回上一次的结果
 
-  Future<void> downloadPredict() => _download('predict', '/download/predict');
+  Future<void> downloadPredict() => _download('last_predict.json', '/download/predict');
 }
