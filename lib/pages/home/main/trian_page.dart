@@ -43,7 +43,7 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
     result.listen((p0) {
       if (p0 == null) return;
       if (kIsWeb) {
-        webViewController.loadContent(p0, SourceType.url);
+        webViewController.loadContent('$baseUrl$p0', SourceType.url);
       }
     });
   }
@@ -68,7 +68,8 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
+              SizedBox(
+                width: 320,
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 4,
@@ -82,11 +83,9 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                         .map(
                           (e) => Form(
                             child: RepaintBoundary(
-                              child: SingleChildScrollView(
-                                child: Builder(
-                                  builder: (context) => Wrap(
-                                    children: e.buildConfig(context),
-                                  ),
+                              child: Builder(
+                                builder: (context) => ListView(
+                                  children: e.buildConfig(context),
                                 ),
                               ),
                             ),
@@ -96,54 +95,58 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                   ),
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: theme.dividerColor),
-                  borderRadius: BorderRadius.circular(8),
-                  color: theme.colorScheme.onSecondary,
-                ),
-                margin: const EdgeInsets.all(8),
-                padding: const EdgeInsets.all(8),
-                width: 360,
-                height: double.infinity,
-                child: Column(
-                  children: [
-                    // 使用fl_chart将logs画出折线图
-                    SizedBox(
-                      height: 360,
-                      child: Obx(
-                        () => LineChart(
-                          LineChartData(
-                            titlesData: const FlTitlesData(show: false),
-                            borderData: FlBorderData(show: false),
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: logs.value
-                                    .asMap()
-                                    .entries
-                                    .map((e) => FlSpot(e.key.toDouble(), e.value))
-                                    .toList(growable: false),
-                                isCurved: true,
-                                color: theme.colorScheme.secondary,
-                                barWidth: 2,
-                                dotData: const FlDotData(show: false),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.dividerColor),
+                    borderRadius: BorderRadius.circular(8),
+                    color: theme.colorScheme.onSecondary,
+                  ),
+                  margin: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
+                  height: double.infinity,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // 使用fl_chart将logs画出折线图
+                        SizedBox(
+                          height: 360,
+                          child: Obx(
+                            () => LineChart(
+                              LineChartData(
+                                titlesData: const FlTitlesData(show: false),
+                                borderData: FlBorderData(show: false),
+                                lineBarsData: [
+                                  LineChartBarData(
+                                    spots: logs.value
+                                        .asMap()
+                                        .entries
+                                        .map((e) => FlSpot(e.key.toDouble(), e.value))
+                                        .toList(growable: false),
+                                    isCurved: true,
+                                    color: theme.colorScheme.secondary,
+                                    barWidth: 2,
+                                    dotData: const FlDotData(show: false),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
+                        if (kIsWeb)
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: WebViewX(
+                              initialContent: '<h2> None </h2>',
+                              initialSourceType: SourceType.html,
+                              onWebViewCreated: (controller) => webViewController = controller,
+                              width: MediaQuery.of(context).size.height * 0.5,
+                              height: MediaQuery.of(context).size.height * 0.5,
+                            ),
+                          ),
+                      ],
                     ),
-                    if (kIsWeb)
-                      Expanded(
-                        child: WebViewX(
-                          initialContent: '<h2> None </h2>',
-                          initialSourceType: SourceType.html,
-                          onWebViewCreated: (controller) => webViewController = controller,
-                          width: 360,
-                          height: 360,
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -163,6 +166,7 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                       title: const Text('选择数据集'),
                       content: SizedBox(
                         width: max(MediaQuery.of(context).size.width * 0.8, 400),
+                        height: double.infinity,
                         child: FittedBox(
                           fit: BoxFit.fitWidth,
                           child: SingleChildScrollView(
