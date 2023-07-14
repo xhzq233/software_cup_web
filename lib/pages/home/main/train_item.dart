@@ -33,7 +33,7 @@ Widget _selectNumItem(num init, {num u = 1, num l = 0, String label = '', void F
             value: init.toDouble(),
             min: l.toDouble(),
             max: u.toDouble(),
-            divisions: init is int ? (u - l).toInt() : null,
+            // divisions: init is int ? (u - l).toInt() : null,
             label: '$init',
             onChanged: (v) => onChanged?.call(v),
           ),

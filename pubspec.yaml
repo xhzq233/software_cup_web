@@ -20,6 +20,8 @@ dependencies:
   boxy: ^2.0.9
   dio: ^5.2.1+1
   file_saver: ^0.2.5
+  fl_chart: ^0.63.0
+  webviewx: ^0.2.2
 
 dev_dependencies:
   flutter_test:

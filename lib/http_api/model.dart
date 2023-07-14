@@ -449,6 +449,8 @@ class PredictionResp {
 // {
 // 	}
 
+typedef TrainResult = String;
+
 @JsonSerializable(explicitToJson: true)
 class TrainStreamData {
   @JsonKey(name: 'message')
@@ -487,62 +489,5 @@ class TrainStreamData {
 }
 
 typedef ClassFeat = Map<String, List<String>>;
-
-@JsonSerializable(explicitToJson: true)
-class TrainResult {
-  @JsonKey(name: 'basic')
-  final TrainResultBasic basic;
-  @JsonKey(name: 'class_feature')
-  final ClassFeat classFeature;
-
-  TrainResult({
-    required this.basic,
-    required this.classFeature,
-  });
-
-  factory TrainResult.fromJson(Map<String, dynamic> json) => _$TrainResultFromJson(json);
-
-  Map<String, dynamic> toJson() => _$TrainResultToJson(this);
-
-  @override
-  String toString() {
-    return codec.convert(this);
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class TrainResultBasic {
-  @JsonKey(name: 'name')
-  final String name;
-  @JsonKey(name: 'id')
-  final int id;
-  @JsonKey(name: 'type')
-  final String type;
-  @JsonKey(name: 'status')
-  final String status;
-  @JsonKey(name: 'createTime')
-  final String createTime;
-  @JsonKey(name: 'macro_f1')
-  final double macroF1;
-  @JsonKey(name: 'feature_num')
-  final int featureNum;
-  @JsonKey(name: 'k_class')
-  final int kClass;
-
-  TrainResultBasic({
-    required this.name,
-    required this.id,
-    required this.type,
-    required this.status,
-    required this.createTime,
-    required this.macroF1,
-    required this.featureNum,
-    required this.kClass,
-  });
-
-  factory TrainResultBasic.fromJson(Map<String, dynamic> json) => _$TrainResultBasicFromJson(json);
-
-  Map<String, dynamic> toJson() => _$TrainResultBasicToJson(this);
-}
 
 const codec = JsonEncoder.withIndent('  ');

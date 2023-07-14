@@ -211,9 +211,7 @@ TrainStreamData _$TrainStreamDataFromJson(Map<String, dynamic> json) =>
       modelType: json['model_type'] as String?,
       process: (json['process'] as num?)?.toDouble(),
       log: (json['log'] as num?)?.toDouble(),
-      result: json['result'] == null
-          ? null
-          : TrainResult.fromJson(json['result'] as Map<String, dynamic>),
+      result: json['result'] as String?,
     );
 
 Map<String, dynamic> _$TrainStreamDataToJson(TrainStreamData instance) =>
@@ -223,43 +221,5 @@ Map<String, dynamic> _$TrainStreamDataToJson(TrainStreamData instance) =>
       'model_type': instance.modelType,
       'process': instance.process,
       'log': instance.log,
-      'result': instance.result?.toJson(),
-    };
-
-TrainResult _$TrainResultFromJson(Map<String, dynamic> json) => TrainResult(
-      basic: TrainResultBasic.fromJson(json['basic'] as Map<String, dynamic>),
-      classFeature: (json['class_feature'] as Map<String, dynamic>).map(
-        (k, e) =>
-            MapEntry(k, (e as List<dynamic>).map((e) => e as String).toList()),
-      ),
-    );
-
-Map<String, dynamic> _$TrainResultToJson(TrainResult instance) =>
-    <String, dynamic>{
-      'basic': instance.basic.toJson(),
-      'class_feature': instance.classFeature,
-    };
-
-TrainResultBasic _$TrainResultBasicFromJson(Map<String, dynamic> json) =>
-    TrainResultBasic(
-      name: json['name'] as String,
-      id: json['id'] as int,
-      type: json['type'] as String,
-      status: json['status'] as String,
-      createTime: json['createTime'] as String,
-      macroF1: (json['macro_f1'] as num).toDouble(),
-      featureNum: json['feature_num'] as int,
-      kClass: json['k_class'] as int,
-    );
-
-Map<String, dynamic> _$TrainResultBasicToJson(TrainResultBasic instance) =>
-    <String, dynamic>{
-      'name': instance.name,
-      'id': instance.id,
-      'type': instance.type,
-      'status': instance.status,
-      'createTime': instance.createTime,
-      'macro_f1': instance.macroF1,
-      'feature_num': instance.featureNum,
-      'k_class': instance.kClass,
+      'result': instance.result,
     };

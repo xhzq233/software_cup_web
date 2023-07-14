@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:dio/dio.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/pages/home/main/table.dart';
 import 'package:software_cup_web/pages/home/main/train_item.dart';
+import 'package:webviewx/webviewx.dart';
 import '../../../http_api/model.dart';
 import 'main_index.dart';
 
@@ -29,8 +33,20 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
   late final _tabController = TabController(length: models.length, vsync: this);
   final Rx<TrainResult?> result = Rx(null);
   final Rx<DataSet?> selectedDataSet = Rx(null);
-  final Rx<String> logs = Rx('');
+  final Rx<List<double>> logs = Rx([]); //折线图参数
   final Rx<double> progress = Rx(0);
+  late WebViewXController webViewController;
+
+  @override
+  void initState() {
+    super.initState();
+    result.listen((p0) {
+      if (p0 == null) return;
+      if (kIsWeb) {
+        webViewController.loadContent(p0, SourceType.url);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,12 +106,44 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                 padding: const EdgeInsets.all(8),
                 width: 360,
                 height: double.infinity,
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.zero,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Obx(() => Text(logs.value)),
-                  ),
+                child: Column(
+                  children: [
+                    // 使用fl_chart将logs画出折线图
+                    SizedBox(
+                      height: 360,
+                      child: Obx(
+                        () => LineChart(
+                          LineChartData(
+                            titlesData: const FlTitlesData(show: false),
+                            borderData: FlBorderData(show: false),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: logs.value
+                                    .asMap()
+                                    .entries
+                                    .map((e) => FlSpot(e.key.toDouble(), e.value))
+                                    .toList(growable: false),
+                                isCurved: true,
+                                color: theme.colorScheme.secondary,
+                                barWidth: 2,
+                                dotData: const FlDotData(show: false),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (kIsWeb)
+                      Expanded(
+                        child: WebViewX(
+                          initialContent: '<h2> None </h2>',
+                          initialSourceType: SourceType.html,
+                          onWebViewCreated: (controller) => webViewController = controller,
+                          width: 360,
+                          height: 360,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
@@ -115,13 +163,16 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                       title: const Text('选择数据集'),
                       content: SizedBox(
                         width: max(MediaQuery.of(context).size.width * 0.8, 400),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: SCTable(
-                            data: storageProvider.dataSetListResponse.value!.datasetList,
-                            selectAble: true,
-                            limit: 1,
-                            selected: tDataSet,
+                        child: FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: SingleChildScrollView(
+                            child: SCTable(
+                              data: storageProvider.dataSetListResponse.value!.datasetList,
+                              selectAble: true,
+                              limit: 1,
+                              selected: tDataSet,
+                              showAction: false,
+                            ),
                           ),
                         ),
                       ),
@@ -187,7 +238,9 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                             .then((resp) {
                           final ResponseBody? data = resp.data;
                           assert(data != null);
-                          logs.value = '开始训练\n';
+
+                          SmartDialog.showToast('开始训练');
+
                           data!.stream.listen((event) {
                             final strs = utf8
                                 .decode(event)
@@ -202,20 +255,24 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                                 result.value = data.result;
                                 assert(data.result != null);
                                 final log = data.result!.toString();
-                                logs.value += '训练完成: $log\n';
+                                final s = '训练完成: $log\n';
+                                SmartDialog.showToast(s);
                                 storageProvider.forceGetModelList();
                               } else if (data.code == "0") {
                                 assert(data.process != null && data.log != null);
                                 // progress
-                                logs.value += 'log: ${data.log!}, progress: ${data.process!}\n';
+                                logs.update((val) => val?.add(data.log!));
                                 progress.value = data.process!;
                               } else {
                                 // error
-                                logs.value += 'error: $str\n';
+                                final err = 'error: $str\n';
+                                SmartDialog.showToast(err);
                               }
                             }
                           }, onError: (e) {
-                            logs.value += 'error: $e\n';
+                            // error
+                            final err = 'error: $e\n';
+                            SmartDialog.showToast(err);
                           }, onDone: () {
                             storageProvider.forceGetModelList();
                           });

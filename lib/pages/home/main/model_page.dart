@@ -85,13 +85,16 @@ class _ModelPageState extends State<ModelPage> {
                             title: const Text('选择数据集'),
                             content: SizedBox(
                               width: max(MediaQuery.of(context).size.width * 0.8, 400),
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: SCTable(
-                                  data: storageProvider.dataSetListResponse.value!.datasetList,
-                                  selectAble: true,
-                                  limit: 1,
-                                  selected: tDataSet,
+                              child: FittedBox(
+                                fit: BoxFit.fitWidth,
+                                child: SingleChildScrollView(
+                                  child: SCTable(
+                                    data: storageProvider.dataSetListResponse.value!.datasetList,
+                                    selectAble: true,
+                                    limit: 1,
+                                    selected: tDataSet,
+                                    showAction: false,
+                                  ),
                                 ),
                               ),
                             ),
