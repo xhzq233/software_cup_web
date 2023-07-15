@@ -20,11 +20,9 @@ Widget _selectNumItem(num init, {num u = 1, num l = 0, String label = '', void F
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          width: 128,
+          width: 200,
           height: 32,
-          child: FittedBox(
-            child: Text('$label: ${init is int ? init : init.toStringAsFixed(2)}'),
-          ),
+          child: Align(child: Text('$label: ${init is int ? init : init.toStringAsFixed(2)}')),
         ),
         width4,
         Slider(

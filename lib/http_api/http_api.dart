@@ -605,9 +605,14 @@ class AuthedAPIProvider extends API {
 
   Future<Response<ResponseBody>> train(
           String modelName, int datasetId, String modelType, Map<String, dynamic> params) =>
-      httpClient.post('/train/start',
-          data: {'model_name': modelName, 'dataset_id': datasetId, 'model_type': modelType, 'params': params},
-          options: Options(responseType: ResponseType.stream));
+      httpClient.post(
+        '/train/start',
+        data: {'model_name': modelName, 'dataset_id': datasetId, 'model_type': modelType, 'params': params},
+        options: Options(
+          responseType: ResponseType.stream,
+          contentType: 'application/json',
+        ),
+      );
 
 // 获取正在训练的模型
 // URL：/train/training
