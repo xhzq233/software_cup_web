@@ -41,6 +41,82 @@ class _ModelPageState extends State<ModelPage> {
     );
   }
 
+  DataTable _getResDataTable(Map<String, int> predRes) {
+    return DataTable(
+        columns: const <DataColumn>[
+          DataColumn(label: Text('样本序号')),
+          DataColumn(label: Text('分类结果')),
+        ],
+        rows: predRes
+            .map((key, value) {
+              return MapEntry(
+                DataRow(cells: [DataCell(Text(key)), DataCell(Text(value.toString()))]),
+                '',
+              );
+            })
+            .keys
+            .toList());
+  }
+
+  DataTable _getResCountDataTable(Map<String, int> predRes) {
+    Map<int, int> countMap = {};
+    int len = predRes.length;
+    for (var value in predRes.values) {
+      countMap[value] = (countMap[value] ?? 0) + 1;
+    }
+    return DataTable(
+        columns: const <DataColumn>[
+          DataColumn(label: Text('故障类别')),
+          DataColumn(label: Text('出现次数')),
+          DataColumn(label: Text('出现频率')),
+        ],
+        rows: countMap
+            .map((key, value) {
+              return MapEntry(
+                DataRow(cells: [
+                  DataCell(Text(key.toString())),
+                  DataCell(Text(value.toString())),
+                  DataCell(Text((value / len).toStringAsFixed(2))),
+                ]),
+                '',
+              );
+            })
+            .keys
+            .toList());
+  }
+
+  DataTable _getEvaluationDataTable(PredictionResp res) {
+    return DataTable(columns: const <DataColumn>[
+      DataColumn(label: Text('precision')),
+      DataColumn(label: Text('recall')),
+      DataColumn(label: Text('macroF1')),
+    ], rows: [
+      DataRow(cells: [
+        DataCell(Tooltip(message: res.precision.toString(), child: Text(res.precision.toStringAsFixed(2)))),
+        DataCell(Tooltip(message: res.recall.toString(), child: Text(res.recall.toStringAsFixed(2)))),
+        DataCell(Tooltip(message: res.macroF1.toString(), child: Text(res.macroF1.toStringAsFixed(2)))),
+      ])
+    ]);
+  }
+
+  DataTable _getClassEvaluationDataTable(List<ClassRes> classRes) {
+    return DataTable(
+        columns: const <DataColumn>[
+          DataColumn(label: Text('类别序号')),
+          DataColumn(label: Text('precision')),
+          DataColumn(label: Text('recall')),
+          DataColumn(label: Text('macroF1')),
+        ],
+        rows: classRes.map((e) {
+          return DataRow(cells: [
+            DataCell(Text(classRes.indexOf(e).toString())),
+            DataCell(Text(e.precision.toString())),
+            DataCell(Text(e.recall.toString())),
+            DataCell(Text(e.f1.toString())),
+          ]);
+        }).toList());
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -155,16 +231,71 @@ class _ModelPageState extends State<ModelPage> {
                         final res =
                             await authedAPI.predict(selected.first.id, selectedDataSet.value!.id, updateF1.value);
                         if (res != null) {
-                          Get.dialog(AlertDialog(
-                            title: const Text('Result'),
-                            content: SingleChildScrollView(
-                              child: Text(res.toString()),
+                          DataTable predResTable = _getResDataTable(res.predRes);
+                          DataTable resCountTable = _getResCountDataTable(res.predRes);
+                          DataTable evaTable = _getEvaluationDataTable(res);
+                          DataTable classEvaTable = _getClassEvaluationDataTable(res.classRes);
+                          Get.dialog(
+                            AlertDialog(
+                              title: const Text('Result'),
+                              content: Row(
+                                children: [
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text('预测结果:'),
+                                          SingleChildScrollView(
+                                            child: SizedBox(
+                                              width: 300,
+                                              child: predResTable,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text('评估结果:'),
+                                          const SizedBox(height: 10),
+                                          SingleChildScrollView(
+                                            child: evaTable,
+                                          ),
+                                          const SizedBox(height: 30),
+                                          const Text('各类评估结果:'),
+                                          const SizedBox(height: 10),
+                                          SingleChildScrollView(
+                                            child: classEvaTable,
+                                          ),
+                                          const SizedBox(height: 30),
+                                          const Text('频率统计:'),
+                                          const SizedBox(height: 10),
+                                          SingleChildScrollView(
+                                            child: resCountTable,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  child: const Text('确定'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => authedAPI.downloadPredict(),
+                                  child: const Text('下载'),
+                                ),
+                              ],
                             ),
-                            actions: [
-                              TextButton(onPressed: () => Get.back(), child: const Text('确定')),
-                              ElevatedButton(onPressed: () => authedAPI.downloadPredict(),child: const Text('下载')),
-                            ],
-                          ));
+                          );
                         }
                       },
                       child: const Text('预测'),
@@ -184,7 +315,7 @@ class _ModelPageState extends State<ModelPage> {
                     duration: _kAnimationDuration,
                     child: ElevatedButton(
                       onPressed: authedAPI.downloadPredict,
-                      child: const Text('上一次预测下载'),
+                      child: const Text('预测结果下载'),
                     ),
                   ),
                 );
