@@ -38,7 +38,7 @@ extension on RequestOptions {
 class CustomInterceptors extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    log('REQUEST[${options.method}] => PATH: ${options.path} DATA: ${options.dataDescription}');
+    log('REQUEST[${options.method}] => PATH: ${options.path} DATA: ${options.dataDescription}, token: ${tokenManager.token}');
     SmartDialog.dismiss(status: SmartStatus.loading, force: true);
     SmartDialog.showLoading();
     if (tokenManager.isAuthed) {

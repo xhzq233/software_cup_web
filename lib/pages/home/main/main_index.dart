@@ -20,12 +20,6 @@ enum MainPageIndex {
   final Widget page;
   final String pageTitle;
 
-  String get description => switch (this) {
-        data => '上传数据集并划分训练集测试集',
-        train => '预置模型调参提供了一种低代码的视觉模型开发方式，开发者无需关注构建模型的细节，而只需要选择合适的预训练模型、网络并通过简单参数配置即可快速构建高精度的视觉模型。',
-        model => '管理模型，查看模型属性，性能',
-        // predicate => '选择模型后，上传数据集进行测试',
-      };
 
   String get uploadLabel => switch (this) {
         data => '新建数据集',

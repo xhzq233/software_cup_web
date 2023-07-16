@@ -41,9 +41,12 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
   void initState() {
     super.initState();
     result.listen((p0) {
-      if (p0 == null) return;
       if (kIsWeb) {
-        webViewController.loadContent('$baseUrl$p0', SourceType.url);
+        if (p0 == null) {
+          webViewController.loadContent('about:blank', SourceType.URL);
+        } else {
+          webViewController.loadContent('$baseUrl$p0', SourceType.URL);
+        }
       }
     });
   }
@@ -53,16 +56,9 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_kIndex.pageTitle, style: textTheme.headlineLarge),
-            width16,
-            Flexible(child: Text(_kIndex.description, style: textTheme.titleLarge))
-          ],
-        ),
+        Text(_kIndex.pageTitle, style: textTheme.headlineLarge),
         TabBar(tabs: models.keys.map((e) => Tab(text: e)).toList(), controller: _tabController),
         Expanded(
           child: Row(
@@ -134,11 +130,7 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                       if (kIsWeb)
                         Expanded(
                           child: WebViewX(
-                            initialContent: '',
-                            initialSourceType: SourceType.html,
                             onWebViewCreated: (controller) => webViewController = controller,
-                            width: MediaQuery.of(context).size.height * 0.5,
-                            height: MediaQuery.of(context).size.height * 0.5,
                           ),
                         ),
                     ],
@@ -231,6 +223,7 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                         logs.update((val) {
                           val?.clear();
                         });
+                        result.value = null;
                         authedAPI
                             .train(
                           name!,
@@ -252,7 +245,9 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                                 .where((element) => element.isNotEmpty);
                             debugPrint(strs.join('\n'));
                             for (final str in strs) {
-                              final TrainStreamData data = TrainStreamData.fromJson(jsonDecode(str));
+                              // rm 'data: '
+
+                              final TrainStreamData data = TrainStreamData.fromJson(jsonDecode(str.substring(6)));
                               if (data.code == "1") {
                                 // complete
                                 result.value = data.result;

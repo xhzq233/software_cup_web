@@ -123,16 +123,10 @@ class _ModelPageState extends State<ModelPage> {
     final textTheme = theme.textTheme;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(_kIndex.pageTitle, style: textTheme.headlineLarge),
-            width16,
-            Text(_kIndex.description, style: textTheme.titleLarge)
-          ],
-        ),
+        Text(_kIndex.pageTitle, style: textTheme.headlineLarge),
         width16,
         Row(
           children: [

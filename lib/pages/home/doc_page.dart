@@ -1,3 +1,4 @@
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:flutter/material.dart';
 
 class DocPage extends StatelessWidget {
@@ -5,8 +6,6 @@ class DocPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('这里是文档页'),
-    );
+    return SfPdfViewer.asset('assets/manual.pdf');
   }
 }
