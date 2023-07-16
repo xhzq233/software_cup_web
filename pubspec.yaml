@@ -22,7 +22,6 @@ dependencies:
   file_saver: ^0.2.5
   fl_chart: ^0.63.0
   webviewx: ^0.1.0
-  syncfusion_flutter_pdfviewer: ^22.1.38
 
 dev_dependencies:
   flutter_test:
@@ -34,3 +33,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/manual/
