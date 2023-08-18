@@ -169,12 +169,11 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                   final res = await Get.dialog(
                     AlertDialog(
                       title: const Text('选择数据集'),
-                      content: SizedBox(
-                        width: max(MediaQuery.of(context).size.width * 0.8, 400),
-                        height: double.infinity,
-                        child: FittedBox(
-                          fit: BoxFit.fitWidth,
-                          child: SingleChildScrollView(
+                      content: Builder(
+                        builder: (context) => SizedBox(
+                          width: max(MediaQuery.sizeOf(context).width * 0.8, 400),
+                          child: FittedBox(
+                            fit: BoxFit.fitWidth,
                             child: SCTable(
                               data: storageProvider.dataSetListResponse.value!.datasetList,
                               selectAble: true,
