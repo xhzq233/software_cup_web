@@ -189,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Shortcuts(
             shortcuts: {
-              LogicalKeySet(LogicalKeyboardKey.enter): VoidCallbackIntent(mainActionsMap[state]!),
+              LogicalKeySet(LogicalKeyboardKey.enter): VoidCallbackIntent(mainActionsMap[state.value]!),
             },
             child: Align(
               child: ConstrainedBox(
