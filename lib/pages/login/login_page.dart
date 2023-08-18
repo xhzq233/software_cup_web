@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -186,15 +187,20 @@ class _LoginPageState extends State<LoginPage> {
         ColoredBox(color: theme.colorScheme.background.withOpacity(0.9)),
         BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Align(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: Material(
-                elevation: 5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Obx(_contentBuilder),
+          child: Shortcuts(
+            shortcuts: {
+              LogicalKeySet(LogicalKeyboardKey.enter): VoidCallbackIntent(mainActionsMap[state]!),
+            },
+            child: Align(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: Material(
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Obx(_contentBuilder),
+                  ),
                 ),
               ),
             ),
