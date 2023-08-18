@@ -222,8 +222,10 @@ class _ModelPageState extends State<ModelPage> {
                     child: ElevatedButton(
                       onPressed: () async {
                         assert(selectAble.value == true && selected.length == 1 && selectedDataSet.value != null);
+                        SmartDialog.showLoading();
                         final res =
                             await authedAPI.predict(selected.first.id, selectedDataSet.value!.id, updateF1.value);
+                        SmartDialog.dismiss();
                         if (res != null) {
                           DataTable predResTable = _getResDataTable(res.predRes);
                           DataTable resCountTable = _getResCountDataTable(res.predRes);
