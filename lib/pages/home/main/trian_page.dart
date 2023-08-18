@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_macos_webview/flutter_macos_webview.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:software_cup_web/http_api/http_api.dart';
@@ -13,6 +14,11 @@ import 'package:software_cup_web/pages/home/main/train_item.dart';
 import 'package:webviewx/webviewx.dart';
 import '../../../http_api/model.dart';
 import 'main_index.dart';
+
+final webview = FlutterMacOSWebView(
+  onWebResourceError: (err) =>
+      SmartDialog.showToast('Error: ${err.errorCode}, ${err.errorType}, ${err.domain}, ${err.description}'),
+);
 
 const _kIndex = MainPageIndex.train;
 final Map<String, ConfigBuilder> models = {
@@ -47,6 +53,17 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
         } else {
           webViewController.loadContent('$baseUrl$p0', SourceType.URL);
         }
+      } else {
+        if (p0 == null) {
+          return;
+        }
+        webview.open(
+          url: '$baseUrl$p0',
+          presentationStyle: PresentationStyle.modal,
+          size: const Size(400.0, 400.0),
+          userAgent:
+              'Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+        );
       }
     });
   }
@@ -252,9 +269,6 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                                 // complete
                                 result.value = data.result;
                                 assert(data.result != null);
-                                final log = data.result!.toString();
-                                final s = '训练完成: $log\n';
-                                SmartDialog.showToast(s);
                                 storageProvider.forceGetModelList();
                               } else if (data.code == "0") {
                                 assert(data.process != null && data.log != null);
