@@ -60,7 +60,7 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
         webview.open(
           url: '$baseUrl$p0',
           presentationStyle: PresentationStyle.modal,
-          size: const Size(400.0, 400.0),
+          size: const Size(800.0, 600.0),
           userAgent:
               'Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
         );
@@ -120,8 +120,7 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                   height: double.infinity,
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: 360,
+                      Expanded(
                         child: Obx(
                           () => LineChart(
                             LineChartData(
