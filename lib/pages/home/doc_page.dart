@@ -6,16 +6,39 @@ class DocPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width * 0.8;
-    return ListView(
-      children: [
-        Image.asset(Assets.manual1, fit: BoxFit.fitWidth, width: width),
-        Image.asset(Assets.manual2, fit: BoxFit.fitWidth, width: width),
-        Image.asset(Assets.manual3, fit: BoxFit.fitWidth, width: width),
-        Image.asset(Assets.manual4, fit: BoxFit.fitWidth, width: width),
-        Image.asset(Assets.manual5, fit: BoxFit.fitWidth, width: width),
-        Image.asset(Assets.manual6, fit: BoxFit.fitWidth, width: width),
-      ],
+    final width = MediaQuery.sizeOf(context).width * 0.68;
+    return Align(
+      child: SizedBox(
+        width: width,
+        child: ListView(
+          children: [
+            Image.asset(
+              Assets.manual1,
+              fit: BoxFit.fitWidth,
+            ),
+            Image.asset(
+              Assets.manual2,
+              fit: BoxFit.fitWidth,
+            ),
+            Image.asset(
+              Assets.manual3,
+              fit: BoxFit.fitWidth,
+            ),
+            Image.asset(
+              Assets.manual4,
+              fit: BoxFit.fitWidth,
+            ),
+            Image.asset(
+              Assets.manual5,
+              fit: BoxFit.fitWidth,
+            ),
+            Image.asset(
+              Assets.manual6,
+              fit: BoxFit.fitWidth,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
