@@ -120,6 +120,12 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                   height: double.infinity,
                   child: Row(
                     children: [
+                      if (kIsWeb)
+                        Expanded(
+                          child: WebViewX(
+                            onWebViewCreated: (controller) => webViewController = controller,
+                          ),
+                        ),
                       Expanded(
                         child: Obx(
                           () => LineChart(
@@ -143,12 +149,6 @@ class _TrainPageState extends State<TrainPage> with SingleTickerProviderStateMix
                           ),
                         ),
                       ),
-                      if (kIsWeb)
-                        Expanded(
-                          child: WebViewX(
-                            onWebViewCreated: (controller) => webViewController = controller,
-                          ),
-                        ),
                     ],
                   ),
                 ),
