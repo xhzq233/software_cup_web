@@ -15,6 +15,7 @@ Model _$ModelFromJson(Map<String, dynamic> json) => Model(
       macroF1: (json['macro_f1'] as num).toDouble(),
       featureNum: json['feature_num'] as int,
       kClass: json['k_class'] as int,
+      sha256: json['SHA256'] as String,
     );
 
 Map<String, dynamic> _$ModelToJson(Model instance) => <String, dynamic>{
@@ -26,6 +27,7 @@ Map<String, dynamic> _$ModelToJson(Model instance) => <String, dynamic>{
       'macro_f1': instance.macroF1,
       'feature_num': instance.featureNum,
       'k_class': instance.kClass,
+      'SHA256': instance.sha256,
     };
 
 ModelListResponse _$ModelListResponseFromJson(Map<String, dynamic> json) =>
@@ -147,6 +149,7 @@ DataSet _$DataSetFromJson(Map<String, dynamic> json) => DataSet(
       kClass: json['k_class'] as int,
       labelState: json['label_state'] as String,
       source: json['source'] as String,
+      sha256: json['SHA256'] as String,
     );
 
 Map<String, dynamic> _$DataSetToJson(DataSet instance) => <String, dynamic>{
@@ -158,6 +161,7 @@ Map<String, dynamic> _$DataSetToJson(DataSet instance) => <String, dynamic>{
       'k_class': instance.kClass,
       'label_state': instance.labelState,
       'source': instance.source,
+      'SHA256': instance.sha256,
     };
 
 DataSetDetail _$DataSetDetailFromJson(Map<String, dynamic> json) =>

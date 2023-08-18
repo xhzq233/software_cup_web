@@ -280,6 +280,7 @@ class _SCTableState<T> extends State<SCTable<T>> {
               ],
             ),
           ),
+        DataCell(Text(dataSet.sha256)),
       ]);
     } else if (dataSet is Model) {
       cells.addAll([
@@ -313,6 +314,7 @@ class _SCTableState<T> extends State<SCTable<T>> {
               ],
             ),
           ),
+        DataCell(Text(dataSet.sha256)),
       ]);
     }
 
@@ -406,6 +408,7 @@ class _SCTableState<T> extends State<SCTable<T>> {
               });
             }),
         if (widget.showAction) const DataColumn(label: SizedBox(width: 340, child: Align(child: Text('Actions')))),
+        const DataColumn(label: Text('Sha256')),
       ]);
     } else if (widget.data.first is Model) {
       final data = widget.data as List<Model>;
@@ -483,6 +486,7 @@ class _SCTableState<T> extends State<SCTable<T>> {
               });
             }),
         if (widget.showAction) const DataColumn(label: SizedBox(width: 340, child: Align(child: Text('Actions')))),
+        const DataColumn(label: Text('Sha256')),
       ]);
     }
 

@@ -33,6 +33,8 @@ class Model {
   final int featureNum;
   @JsonKey(name: 'k_class')
   final int kClass;
+  @JsonKey(name: 'SHA256')
+  final String sha256;
 
   Model({
     required this.name,
@@ -43,6 +45,7 @@ class Model {
     required this.macroF1,
     required this.featureNum,
     required this.kClass,
+    required this.sha256,
   });
 
   factory Model.fromJson(Map<String, dynamic> json) => _$ModelFromJson(json);
@@ -285,6 +288,8 @@ class DataSet {
   final String labelState;
   @JsonKey(name: 'source')
   final String source;
+  @JsonKey(name: 'SHA256')
+  final String sha256;
 
   DataSet({
     required this.name,
@@ -295,6 +300,7 @@ class DataSet {
     required this.kClass,
     required this.labelState,
     required this.source,
+    required this.sha256,
   });
 
   factory DataSet.fromJson(Map<String, dynamic> json) => _$DataSetFromJson(json);
