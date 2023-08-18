@@ -190,6 +190,7 @@ PredictionResp _$PredictionRespFromJson(Map<String, dynamic> json) =>
       classRes: (json['class_res'] as List<dynamic>)
           .map((e) => ClassRes.fromJson(e as Map<String, dynamic>))
           .toList(),
+      url: json['url'] as String,
     );
 
 Map<String, dynamic> _$PredictionRespToJson(PredictionResp instance) =>
@@ -202,6 +203,7 @@ Map<String, dynamic> _$PredictionRespToJson(PredictionResp instance) =>
       'recall': instance.recall,
       'k_class': instance.kClass,
       'class_res': instance.classRes.map((e) => e.toJson()).toList(),
+      'url': instance.url,
     };
 
 TrainStreamData _$TrainStreamDataFromJson(Map<String, dynamic> json) =>

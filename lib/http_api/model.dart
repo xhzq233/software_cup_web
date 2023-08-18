@@ -391,6 +391,8 @@ class PredictionResp {
   final int kClass;
   @JsonKey(name: 'class_res')
   final List<ClassRes> classRes;
+  @JsonKey(name: 'url')
+  final String url;
 
   PredictionResp({
     required this.message,
@@ -401,6 +403,7 @@ class PredictionResp {
     required this.recall,
     required this.kClass,
     required this.classRes,
+    required this.url,
   });
 
   factory PredictionResp.fromJson(Map<String, dynamic> json) => _$PredictionRespFromJson(json);

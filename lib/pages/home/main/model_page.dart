@@ -7,6 +7,7 @@ import 'package:software_cup_web/http_api/model.dart';
 import 'package:software_cup_web/http_api/storage.dart';
 import 'package:software_cup_web/pages/home/main/main_index.dart';
 import 'package:flutter/material.dart';
+import 'package:software_cup_web/pages/home/main/predict_res.dart';
 import 'package:software_cup_web/pages/home/main/table.dart';
 
 const _kIndex = MainPageIndex.model;
@@ -124,7 +125,6 @@ class _ModelPageState extends State<ModelPage> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-
       children: [
         Text(_kIndex.pageTitle, style: textTheme.headlineLarge),
         width16,
@@ -230,64 +230,12 @@ class _ModelPageState extends State<ModelPage> {
                           DataTable evaTable = _getEvaluationDataTable(res);
                           DataTable classEvaTable = _getClassEvaluationDataTable(res.classRes);
                           Get.dialog(
-                            AlertDialog(
-                              title: const Text('Result'),
-                              content: Row(
-                                children: [
-                                  Expanded(
-                                    child: SingleChildScrollView(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text('预测结果:'),
-                                          SingleChildScrollView(
-                                            child: SizedBox(
-                                              width: 300,
-                                              child: predResTable,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: SingleChildScrollView(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text('评估结果:'),
-                                          const SizedBox(height: 10),
-                                          SingleChildScrollView(
-                                            child: evaTable,
-                                          ),
-                                          const SizedBox(height: 30),
-                                          const Text('各类评估结果:'),
-                                          const SizedBox(height: 10),
-                                          SingleChildScrollView(
-                                            child: classEvaTable,
-                                          ),
-                                          const SizedBox(height: 30),
-                                          const Text('频率统计:'),
-                                          const SizedBox(height: 10),
-                                          SingleChildScrollView(
-                                            child: resCountTable,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Get.back(),
-                                  child: const Text('确定'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => authedAPI.downloadPredict(),
-                                  child: const Text('下载'),
-                                ),
-                              ],
+                            PredictRes(
+                              predResTable: predResTable,
+                              resCountTable: resCountTable,
+                              evaTable: evaTable,
+                              classEvaTable: classEvaTable,
+                              url: res.url,
                             ),
                           );
                         }
